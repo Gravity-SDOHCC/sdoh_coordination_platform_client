@@ -1,8 +1,8 @@
 class SessionsController < ApplicationController
   # Get /home
   def index
-    if client_connected?
-      flash[:notice] = "You are already connected to a FHIR server (#{get_server_base_url})"
+    if cp_client_connected?
+      flash[:notice] = "You are already connected to a FHIR server (#{get_cp_server_base_url})"
       redirect_to dashboard_path
     else
       @fhir_servers = FhirServer.all
@@ -11,25 +11,24 @@ class SessionsController < ApplicationController
 
   # POST /connect
   def create
-    base_url = params[:fhir_server_base_url]
-    server_name = params[:fhir_server_name]
-    @fhir_client = FhirClient.setup_client(base_url)
+    setup_clients
     # TODO: Refactor this to handle Errno::ECONNREFUSED , took too long to connect, etc. Also if-else not needed.
     begin
-      capability_statement = @fhir_client.capability_statement
+      capability_statement = @fhir_cp_client.capability_statement
 
       if capability_statement.present?
-        save_client(@fhir_client)
-        fhir_server = FhirServer.find_or_create_by(base_url: base_url) do |server|
-          server.name = server_name
+        save_cp_client(@fhir_cp_client)
+        fhir_server = FhirServer.find_or_create_by(base_url: params[:fhir_server_base_url]) do |server|
+          server.name = params[:fhir_server_name]
         end
-        save_server_base_url(fhir_server.base_url)
-        save_practitioner_id(TEST_PRACTITIONER_ID)
+        save_cp_server_base_url(fhir_server.base_url)
+        save_ehr_client(@fhir_ehr_client)
+        save_user_id(TEST_PROVIDER_ID)
 
         flash[:success] = "Successfully connected to #{fhir_server.name}"
         redirect_to dashboard_path
       else
-        flash[:error] = "Failed to connect to the provided server, verify the URL provided is correct."
+        flash[:error] = "Failed to connect to the provided CP server, verify the URL provided is correct."
         redirect_to home_path
       end
 
@@ -46,6 +45,14 @@ class SessionsController < ApplicationController
     Rails.cache.clear
     flash[:success] = "Successfully disconnected from the FHIR server"
     redirect_to root_path
+  end
+
+  private
+
+  def setup_clients
+    @fhir_cp_client = FhirClient.setup_client(params[:fhir_server_base_url])
+    ehr_url = params[:ehr_url] || DEFAULT_EHR_URL
+    @fhir_ehr_client = FhirClient.setup_client(params[:ehr_url])
   end
 
 end
