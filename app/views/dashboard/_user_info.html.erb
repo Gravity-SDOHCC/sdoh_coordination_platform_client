@@ -1,15 +1,14 @@
 <div class="user-info">
-   <% logout = "<a class='logout' href='/disconnect'>Logout</a>" %>
-  <div class="avatar" tabindex="0" data-bs-toggle="popover"data-bs-placement="bottom"
-      data-bs-trigger="focus" data-bs-html="true" data-bs-content="<%= logout %>"
-  >
-    <img
-      src="<%= asset_path('avatar.svg') %>"
-      alt="avatar"
-      class="image"
-    >
+  <div class="dropdown">
+    <div class="avatar dropdown-toggle" id="avatarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <img src="<%= asset_path("avatar.svg") %>" alt="avatar" class="image">
+    </div>
+    <ul class="dropdown-menu" aria-labelledby="avatarDropdown">
+      <li><a class="dropdown-item" href="/disconnect">Logout</a></li>
+    </ul>
   </div>
   <div class="details">
     <span class="name"><%= @current_user&.name || "Test User" %></span>
   </div>
 </div>
+
