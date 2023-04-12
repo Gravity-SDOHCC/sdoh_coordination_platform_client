@@ -1,8 +1,6 @@
 class SessionsController < ApplicationController
   # Get /home
   def index
-    Rails.cache.clear
-    reset_session
     if cp_client_connected?
       flash[:notice] = "You are already connected to a FHIR server (#{get_cp_server_base_url})"
       redirect_to dashboard_path
@@ -20,12 +18,10 @@ class SessionsController < ApplicationController
 
       if capability_statement.present?
         save_cp_client(@fhir_cp_client)
-        save_ehr_client(@fhir_ehr_client)
         fhir_server = FhirServer.find_or_create_by(base_url: params[:fhir_server_base_url]) do |server|
           server.name = params[:fhir_server_name]
         end
         save_cp_server_base_url(fhir_server.base_url)
-        save_ehr_server_base_url("http://localhost:8080/fhir") #params[:ehr_url] || DEFAULT_EHR_URL
         save_user_id(TEST_PROVIDER_ID)
 
         flash[:success] = "Successfully connected to #{fhir_server.name}"
@@ -34,7 +30,6 @@ class SessionsController < ApplicationController
         flash[:error] = "Failed to connect to the provided CP server, verify the URL provided is correct."
         redirect_to home_path
       end
-
     rescue StandardError => e
       puts "Error happened:#{e.class} => #{e.message}"
       flash[:error] = "Failed to connect to the provided server, verify the URL provided is correct. Error: #{e.message}"
@@ -54,8 +49,5 @@ class SessionsController < ApplicationController
 
   def setup_clients
     @fhir_cp_client = FhirClient.setup_client(params[:fhir_server_base_url])
-    ehr_url =  "http://localhost:8080/fhir" #params[:ehr_url] || DEFAULT_EHR_URL
-    @fhir_ehr_client = FhirClient.setup_client(ehr_url)
   end
-
 end
