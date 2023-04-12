@@ -1,4 +1,5 @@
 @import "variables";
+@import "mixins";
 
 html {
 
@@ -19,12 +20,10 @@ html *::after {
 body {
 
   margin: 0;
-  display: flex;
   height: 100vh;
   overflow: hidden;
   align-items: center;
   justify-content: center;
-  background-color: #ffb457;
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--duration);
 
