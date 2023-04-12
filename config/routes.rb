@@ -5,5 +5,7 @@ Rails.application.routes.draw do
   get 'home', to: 'sessions#index'
   post 'connect', to: 'sessions#create'
   get 'disconnect', to: 'sessions#destroy'
-  get 'dashboard', to: 'dashboard#main'
+  get 'dashboard', to: 'dashboard#index'
+  get 'tasks/:id/:status', to: 'tasks#update_task'
+  get 'poll_tasks', to: 'tasks#poll_tasks'
 end

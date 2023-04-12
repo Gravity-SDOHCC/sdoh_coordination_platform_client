@@ -12,13 +12,4 @@ class ApplicationController < ActionController::Base
       redirect_to home_path
     end
   end
-
-  def require_ehr_client
-    if ehr_client_connected?
-      get_ehr_client
-    else
-      @fhir_ehr_client = FhirClient.setup_client(get_ehr_server_base_url)
-      save_ehr_client(@fhir_ehr_client)
-    end
-  end
 end
