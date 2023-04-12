@@ -2,10 +2,10 @@
 
 <div>
   <div class="tab-content mt-2">
-    <%= render partial: 'service_requests', locals: {id: 'service-requests', active: @active_tab == 'service-requests'} %>
-    <%= render partial: 'our_tasks', locals: {id: 'our-tasks', active: @active_tab == 'our-tasks'} %>
-    <%= render partial: 'requesting_organizations', locals: {id: 'requesting-organizations', active: @active_tab == 'requesting-organization'} %>
-    <%= render partial: 'cbo_organizations', locals: {id: 'cbo', active: @active_tab == 'cbo'} %>
+    <%= render partial: "service_requests", locals: { id: "service-requests", active: @active_tab == "service-requests" } %>
+    <%= render partial: "our_tasks", locals: { id: "our-tasks", active: @active_tab == "our-tasks" } %>
+    <%= render partial: "requesting_organizations", locals: { id: "requesting-organizations", active: @active_tab == "requesting-organization" } %>
+    <%= render partial: "cbo_organizations", locals: { id: "cbo", active: @active_tab == "cbo" } %>
   </div>
 </div>
 
@@ -42,6 +42,6 @@
         });
     };
 
-    setInterval(pollTasks, 5000);
+    setInterval(pollTasks, 60000);
   </script>
 <% end %>
