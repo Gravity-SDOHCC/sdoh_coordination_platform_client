@@ -1,5 +1,6 @@
 <div class="table-responsive small-text">
-    <table class="table table-sm text-center fw-semibold">
+    <table class="table table-sm text-center fw-semibold caption-top">
+      <h3><%= type.capitalize %> Tasks</h3>
         <thead>
           <tr>
             <th scope="col">Task</th>
@@ -49,27 +50,27 @@
                 <% end %>
               </td>
               <td><%= referral.focus&.category || "-" %></td>
-              <td><%=referral.owner_name %></td>
+              <td><%= referral.owner_name %></td>
               <td><%= referral.patient_name %></td>
               <td>
                 <% if referral.consent.present? %>
-                  <%= link_to referral.consent.code, "#fhir-resource-modal-#{referral.consent&.id}", data: { bs_toggle: 'modal'} %>
+                  <%= link_to referral.consent.code, "#fhir-resource-modal-#{referral.consent&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render 'shared/fhir_resource_modal', resource: referral.consent %>
+                    <%= render "shared/fhir_resource_modal", resource: referral.consent %>
                   <% end %>
                 <% end %>
               </td>
               <td>
                 <% if type == "completed" %>
-                  <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: 'modal'} %>
+                  <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render 'procedure_modal', resource: referral.outcome %>
+                    <%= render "procedure_modal", resource: referral.outcome %>
                   <% end %>
                 <% end %>
               </td>
             <% if type == "active" %>
               <td class="p-3">
-                <%= link_to "/tasks/#{referral.id}/canceled", class: 'action-button text-nowrap text-muted' do %>
+                <%= link_to "/tasks/#{referral.id}/canceled", class: "action-button text-nowrap text-muted" do %>
                   <span class="icon"><i class="bi bi-trash text-muted"></i></span>
                   <span class="label">Cancel Task</span>
                 <% end %>

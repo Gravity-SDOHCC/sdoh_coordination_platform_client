@@ -16,24 +16,28 @@ module TasksHelper
         _profile: "http://hl7.org/fhir/us/sdoh-clinicalcare/StructureDefinition/SDOHCC-TaskForReferralManagement",
         _sort: "-_lastUpdated",
         _include: "Task:focus",
-        _include: "ServiceRequest:supporting-info"
-      }
+      # _include: "ServiceRequest:supporting-info"
+      },
     }
 
     begin
       response = client.search(FHIR::Task, search: search_params)
       if response.response[:code] == 200
         entries = response.resource.entry.map(&:resource)
-        task_entries = entries.select { |entry| entry.resourceType == "Task"}
-        sr_entries = entries.select { |entry| entry.resourceType == "ServiceRequest"}
-        consent_entries = entries.select { |entry| entry.resourceType == "Consent"}
-
-        cp_tasks, ehr_tasks = []
+        task_entries = entries.select { |entry| entry.resourceType == "Task" }
+        sr_entries = entries.select { |entry| entry.resourceType == "ServiceRequest" }
+        consent_entries = entries.select { |entry| entry.resourceType == "Consent" }
+        if consent_entries.size == 0
+          consent_entries = client.read_feed(FHIR::Consent).resource&.entry&.map(&:resource) || []
+        end
+        cp_tasks = []
+        ehr_tasks = []
         task_entries.each do |task|
           focus_id = task.focus.reference.split("/").last
           focus = sr_entries.find { |sr| sr.id == focus_id }
           consent_id = focus&.supportingInfo&.first&.reference&.split("/")&.last
           consent = consent_entries.find { |consent| consent.id == consent_id }
+          # byebug
           # TODO: This is temporary. with auth, the org id will be in the token and we can use it to filter
           if task.requester.reference.include?("SDOHCC-OrganizationCoordinationPlatformExample")
             cp_tasks << Task.new(task, focus, consent)
@@ -43,7 +47,7 @@ module TasksHelper
         end
 
         # Group tasks by status and org requesting
-        grp = {"cp_tasks" => group_tasks(cp_tasks), "ehr_tasks" => group_tasks(ehr_tasks) }
+        grp = { "cp_tasks" => group_tasks(cp_tasks), "ehr_tasks" => group_tasks(ehr_tasks) }
         save_cp_tasks(cp_tasks)
         save_ehr_tasks(ehr_tasks)
         [true, grp]
@@ -55,11 +59,10 @@ module TasksHelper
     rescue StandardError => e
       [false, "Something went wrong. #{e.message}"]
     end
-
   end
 
   def group_tasks(tasks)
-    grp = {"active" => [], "completed" => [], "canceled" => [] }
+    grp = { "active" => [], "completed" => [], "canceled" => [] }
     tasks&.each do |task|
       grp["active"] << task if task.status != "completed" && task.status != "canceled" && task.status != "rejected"
       grp["completed"] << task if task.status == "completed"
@@ -67,5 +70,4 @@ module TasksHelper
     end
     grp
   end
-
 end

@@ -1,6 +1,6 @@
 class Task
   attr_reader :id, :status, :focus, :owner_reference, :owner_name, :requester_name,
-              :requester_reference, :patient_name, :patient_reference, :outcome,
+              :requester_reference, :patient_name, :patient_reference, :outcome, :consent,
               :outcome_type, :authored_on, :fhir_resource
 
   def initialize(fhir_task, fhir_service_request, fhir_consent)
@@ -20,8 +20,6 @@ class Task
   end
 
   private
-
-
 
   def get_outcome(outcome)
     return if outcome.nil?

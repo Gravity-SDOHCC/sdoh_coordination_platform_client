@@ -1,7 +1,8 @@
 
 <div class="table-responsive small-text">
-    <table class="table table-sm text-center fw-semibold">
-        <thead>
+    <table class="table table-sm text-center table-fixed align-middle fw-semibold caption-top">
+      <h3 class="text-secondary"><%= type.capitalize %> Tasks</h3>
+        <thead class="text-center">
           <tr>
             <th scope="col">Request Date</th>
             <th scope="col">Priority</th>
@@ -52,33 +53,38 @@
                 <% end %>
               </td>
               <td><%= referral.focus&.category || "-" %></td>
-              <td><%=referral.requester_name %></td>
+              <td><%= referral.requester_name %></td>
               <td><%= referral.patient_name %></td>
               <td>
                 <% if referral.consent.present? %>
-                  <%= link_to referral.consent.code, "#fhir-resource-modal-#{referral.consent&.id}", data: { bs_toggle: 'modal'} %>
+                  <%= link_to referral.consent.code, "#fhir-resource-modal-#{referral.consent&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render 'shared/fhir_resource_modal', resource: referral.consent %>
+                    <%= render "shared/fhir_resource_modal", resource: referral.consent %>
                   <% end %>
                 <% end %>
               </td>
               <td>
                 <% if type == "completed" %>
-                  <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: 'modal'} %>
+                  <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render 'procedure_modal', resource: referral.outcome %>
+                    <%= render "procedure_modal", resource: referral.outcome %>
                   <% end %>
                 <% end %>
               </td>
             <% if type == "active" %>
               <td class="p-3">
-                <%= link_to "/tasks/#{referral.id}/rejected", class: 'action-button text-nowrap text-muted' do %>
-                  <span class="icon"><i class="bi bi-trash text-muted"></i></span>
-                  <span class="label">Reject Task</span>
-                <% end %>
-                <%= link_to "/tasks/#{referral.id}/accepted", class: 'action-button text-nowrap text-muted' do %>
-                  <span class="icon"><i class="bi bi-check text-success"></i></span>
-                  <span class="label d-none">Accept Task</span>
+
+                <% if referral.status != "accepted" %>
+                  <%= link_to "/tasks/#{referral.id}/rejected", class: "action-button text-nowrap text-muted" do %>
+                    <span class="icon"><i class="bi bi-trash text-muted"></i></span>
+                    <span class="label">Reject Task</span>
+                  <% end %>
+                  <%= link_to "/tasks/#{referral.id}/accepted", class: "action-button text-nowrap text-muted" do %>
+                    <span class="icon"><i class="bi bi-check text-success"></i></span>
+                    <span class="label">Accept Task</span>
+                  <% end %>
+                <% else %>
+                 --
                 <% end %>
               </td>
             <% end %>
