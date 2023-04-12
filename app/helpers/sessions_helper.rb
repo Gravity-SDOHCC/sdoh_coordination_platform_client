@@ -3,7 +3,7 @@ module SessionsHelper
   TEST_PROVIDER_ID = "SDOHCC-OrganizationCoordinationPlatformExample".freeze
 
   def save_cp_client(cp_client)
-    @fhir_cp_client = Rails.cache.fetch('cp_client', expires_in: 30.minutes) do
+    @fhir_cp_client = Rails.cache.fetch('cp_client', expires_in: 1.day) do
       cp_client
     end
   end
@@ -60,6 +60,6 @@ module SessionsHelper
   end
 
   def active_tab
-    session[:active_tab] || "personal-characteristics"
+    session[:active_tab] || "service-requests"
   end
 end

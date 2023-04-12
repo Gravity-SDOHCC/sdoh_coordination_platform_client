@@ -1,0 +1,15 @@
+<div class="user-info">
+   <% logout = "<a class='logout' href='/disconnect'>Logout</a>" %>
+  <div class="avatar" tabindex="0" data-bs-toggle="popover"data-bs-placement="bottom"
+      data-bs-trigger="focus" data-bs-html="true" data-bs-content="<%= logout %>"
+  >
+    <img
+      src="<%= asset_path('avatar.svg') %>"
+      alt="avatar"
+      class="image"
+    >
+  </div>
+  <div class="details">
+    <span class="name"><%= @current_user&.name || "Test User" %></span>
+  </div>
+</div>

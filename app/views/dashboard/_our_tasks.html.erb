@@ -1,0 +1,23 @@
+<div class="tab-pane fade <%= 'show active' if active %>" id="<%= id %>" role="tabpanel" aria-labelledby="<%= id %>-tab">
+
+  <% if @active_cp_tasks.nil? && @completed_cp_tasks.nil? && @canceled_cp_tasks.nil? %>
+    <h5 class="text-muted text-center my-3"> There no requests yet</h5>
+  <% else %>
+    <div class="table-wrapper my-3">
+      <div id="active-cp-tasks-table">
+        <%= render "cp_tasks_table", referrals: @active_cp_tasks, type: "active" %>
+      </div>
+    </div>
+    <div class="table-wrapper my-3">
+      <div id="completed-cp-tasks-table">
+        <%= render "cp_tasks_table", referrals: @completed_cp_tasks, type: "completed" %>
+      </div>
+    </div>
+    <div class="table-wrapper my-3">
+      <div id="canceled-cp-tasks-table">
+        <%= render "cp_tasks_table", referrals: @canceled_cp_tasks, type: "canceled" %>
+      </div>
+    </div>
+  <% end %>
+
+</div>

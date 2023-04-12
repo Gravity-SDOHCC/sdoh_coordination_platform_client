@@ -1,0 +1,9 @@
+<!-- app/views/shared/_flash_messages.html.erb -->
+<div id="flash-container">
+  <% flash.each do |type, message| %>
+    <div class="alert alert-<%= bootstrap_class_for(type) %> alert-dismissible fade show" role="alert">
+      <%= message %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+</div>
