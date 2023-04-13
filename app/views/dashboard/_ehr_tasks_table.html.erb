@@ -67,7 +67,7 @@
                 <% if type == "completed" %>
                   <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render "procedure_modal", resource: referral.outcome %>
+                    <%= render "dashboard/procedure_modal", resource: referral.outcome %>
                   <% end %>
                 <% end %>
               </td>
