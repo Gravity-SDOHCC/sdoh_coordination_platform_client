@@ -1,6 +1,6 @@
 <div class="table-responsive small-text">
     <table class="table table-sm text-center fw-semibold caption-top">
-      <h3><%= type.capitalize %> Tasks</h3>
+        <h3 class="text-secondary"><%= type.capitalize %> Tasks</h3>
         <thead>
           <tr>
             <th scope="col">Task</th>
@@ -30,7 +30,7 @@
                 <% status = referral.status %>
 
                 <% if status == "requested" %>
-                  <span class="bi bi-check2-circle text-primary"></span> Requested
+                  <span class="bi bi-arrow-90deg-right text-primary"></span> Requested
                 <% end %>
                 <% if status == "in-progress" %>
                   <span class="bi bi-arrow-repeat text-success"></span> In Progress
@@ -38,8 +38,8 @@
                 <% if status == "completed" %>
                   <span class="bi bi-check-lg text-success"></span> Completed
                 <% end %>
-                <% if status == "completed" %>
-                  <span class="bi bi-check-lg text-success"></span> Completed
+                <% if status == "received" %>
+                  <span class="bi bi-arrow-bar-down text-primary"></span> Received
                 <% end %>
                 <% if status == "cancelled" || status == "rejected" %>
                   <span class="bi bi-x-circle text-danger"></span><%= status %>
