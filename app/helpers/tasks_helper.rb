@@ -15,34 +15,43 @@ module TasksHelper
       parameters: {
         _profile: "http://hl7.org/fhir/us/sdoh-clinicalcare/StructureDefinition/SDOHCC-TaskForReferralManagement",
         _sort: "-_lastUpdated",
-        _include: "Task:focus",
-      # _include: "ServiceRequest:supporting-info"
+      # _include: "Task:focus",
+      # _include: "Task:requester",
+      # _include: "Task:patient",
+      # _include: "Task:ServiceRequest:supporting-info"
       },
     }
-
+    # TODO: We are Not getting the include resources in the response
     begin
       response = client.search(FHIR::Task, search: search_params)
       if response.response[:code] == 200
         entries = response.resource.entry.map(&:resource)
         task_entries = entries.select { |entry| entry.resourceType == "Task" }
-        sr_entries = entries.select { |entry| entry.resourceType == "ServiceRequest" }
-        consent_entries = entries.select { |entry| entry.resourceType == "Consent" }
-        if consent_entries.size == 0
-          consent_entries = client.read_feed(FHIR::Consent).resource&.entry&.map(&:resource) || []
-        end
+        # sr_entries = entries.select { |entry| entry.resourceType == "ServiceRequest" }
+        # consent_entries = entries.select { |entry| entry.resourceType == "Consent" }
+        # requester_entries = entries.select { |entry| entry.resourceType == "Organization" || entry.resourceType == "PractitionerRole" }
+        # patient_entries = entries.select { |entry| entry.resourceType == "Patient" }
+        # if consent_entries.size == 0
+        #   consent_entries = client.read_feed(FHIR::Consent).resource&.entry&.map(&:resource) || []
+        # end
         cp_tasks = []
         ehr_tasks = []
         task_entries.each do |task|
-          focus_id = task.focus.reference.split("/").last
-          focus = sr_entries.find { |sr| sr.id == focus_id }
-          consent_id = focus&.supportingInfo&.first&.reference&.split("/")&.last
-          consent = consent_entries.find { |consent| consent.id == consent_id }
-          # byebug
+          # focus_id = get_id_from_reference(task.focus)
+          # focus = sr_entries.find { |sr| sr.id == focus_id }
+          # # byebug
+          # consent_id = get_id_from_reference(focus&.supportingInfo)
+          # consent = consent_entries.find { |consent| consent.id == consent_id }
+          # patient_id = get_id_from_reference(task.for)
+          # patient = patient_entries.find { |patient| patient.id == patient_id }
+          # requester_id = get_id_from_reference(task.requester)
+          # requester = requester_entries.find { |requester| requester.id == requester_id }
+
           # TODO: This is temporary. with auth, the org id will be in the token and we can use it to filter
           if task.requester.reference.include?("SDOHCC-OrganizationCoordinationPlatformExample")
-            cp_tasks << Task.new(task, focus, consent)
+            cp_tasks << Task.new(task)
           else
-            ehr_tasks << Task.new(task, focus, consent)
+            ehr_tasks << Task.new(task)
           end
         end
 
@@ -61,13 +70,19 @@ module TasksHelper
     end
   end
 
+  private
+
   def group_tasks(tasks)
-    grp = { "active" => [], "completed" => [], "canceled" => [] }
+    grp = { "active" => [], "completed" => [], "cancelled" => [] }
     tasks&.each do |task|
-      grp["active"] << task if task.status != "completed" && task.status != "canceled" && task.status != "rejected"
+      grp["active"] << task if task.status != "completed" && task.status != "cancelled" && task.status != "rejected"
       grp["completed"] << task if task.status == "completed"
-      grp["canceled"] << task if task.status == "canceled" || task.status == "rejected"
+      grp["cancelled"] << task if task.status == "cancelled" || task.status == "rejected"
     end
     grp
+  end
+
+  def get_id_from_reference(ref_obj)
+    ref_obj&.reference&.split("/")&.last
   end
 end
