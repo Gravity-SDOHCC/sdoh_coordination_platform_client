@@ -13,7 +13,7 @@
             <% if type == "completed" %>
               <th scope="col">Outcomes</th>
             <% end %>
-            <% if type == "canceled" || type == "rejected" %>
+            <% if type == "cancelled" || type == "rejected" %>
               <th scope="col">Reason</th>
             <% end %>
             <% if type == "active" %>
@@ -41,7 +41,7 @@
                 <% if status == "completed" %>
                   <span class="bi bi-check-lg text-success"></span> Completed
                 <% end %>
-                <% if status == "canceled" || status == "rejected" %>
+                <% if status == "cancelled" || status == "rejected" %>
                   <span class="bi bi-x-circle text-danger"></span><%= status %>
                 <% end %>
 
@@ -70,7 +70,7 @@
               </td>
             <% if type == "active" %>
               <td class="p-3">
-                <%= link_to "/tasks/#{referral.id}/canceled", class: "action-button text-nowrap text-muted" do %>
+                <%= link_to "/tasks/#{referral.id}/cancelled", class: "action-button text-nowrap text-muted" do %>
                   <span class="icon"><i class="bi bi-trash text-muted"></i></span>
                   <span class="label">Cancel Task</span>
                 <% end %>

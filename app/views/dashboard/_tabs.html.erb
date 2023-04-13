@@ -28,10 +28,10 @@
             if (response.active_ehr_tasks) {
               document.getElementById("active-ehr-tasks-table").innerHTML = response.active_ehr_tasks;
               document.getElementById("completed-ehr-tasks-table").innerHTML = response.completed_ehr_tasks;
-              document.getElementById("canceled-ehr-tasks-table").innerHTML = response.canceled_ehr_tasks;
+              document.getElementById("cancelled-ehr-tasks-table").innerHTML = response.cancelled_ehr_tasks;
               document.getElementById("active-cp-tasks-table").innerHTML = response.active_cp_tasks;
               document.getElementById("completed-cp-tasks-table").innerHTML = response.completed_cp_tasks;
-              document.getElementById("canceled-cp-tasks-table").innerHTML = response.canceled_cp_tasks;
+              document.getElementById("cancelled-cp-tasks-table").innerHTML = response.cancelled_cp_tasks;
             }
 
             if (response.flash) {

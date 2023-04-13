@@ -2,7 +2,7 @@
 
 <div class="tab-pane fade <%= "show active" if active %>" id="<%= id %>" role="tabpanel" aria-labelledby="<%= id %>-tab">
 
-  <% if @active_ehr_tasks.nil? && @completed_ehr_tasks.nil? && @canceled_ehr_tasks.nil? %>
+  <% if @active_ehr_tasks.nil? && @completed_ehr_tasks.nil? && @cancelled_ehr_tasks.nil? %>
     <h5 class="text-muted text-center my-3"> There no requests yet</h5>
   <% else %>
     <div class="table-wrapper y-3 px-3 border-bottom">
@@ -16,8 +16,8 @@
       </div>
     </div>
     <div class="table-wrapper mt-5 px-3">
-      <div id="canceled-ehr-tasks-table">
-        <%= render "ehr_tasks_table", referrals: @canceled_ehr_tasks, type: "canceled" %>
+      <div id="cancelled-ehr-tasks-table">
+        <%= render "ehr_tasks_table", referrals: @cancelled_ehr_tasks, type: "cancelled" %>
       </div>
     </div>
   <% end %>
