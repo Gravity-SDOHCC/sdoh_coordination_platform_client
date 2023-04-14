@@ -1,6 +1,6 @@
 class TasksController < ApplicationController
   before_action :require_cp_client
-  before_action :get_all_supporting_resources, only: [:create]
+  before_action :get_cbo_organizations, only: [:poll_tasks]
 
   def update_task
     cached_cp_tasks = Rails.cache.read("cp_tasks")
@@ -16,18 +16,26 @@ class TasksController < ApplicationController
         status = params[:status] == "status" ? params[:task_status] : params[:status]
         part_of_id = task.partOf&.first&.reference&.split("/")&.last
         task.status = status
-        task_result = task.update
         if status == "accepted"
+          task_result = task.update
           create_cp_task_service_request(task_result, service_request)
-        end
-
-        if (status == "cancelled" || status == "rejected") && part_of_id.present?
-          # if the cp task is cancelled/rejected, mark the ehr task as cancelled/rejected
-          service_request.status = "revoked"
-          sr_result = service_request.update
-          ehr_task = FHIR::Task.read(part_of_id)
-          ehr_task.status = status
-          ehr_task_result = ehr_task.update
+        elsif status == "in-progress"
+          task.update
+        elsif status == "rejected"
+          task.statusReason = { text: params[:status_reason] }
+          task.update
+        elsif status == "completed"
+          cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
+          task.output = cp_task.output
+          task.update
+        elsif status == "cancelled" && part_of_id.present?
+          ehr_task = cached_tasks.find { |t| t.id == part_of_id }&.fhir_resource
+          task.statusReason = ehr_task.statusReason
+          task.update
+        elsif status == "cancelled" && part_of_id.blank?
+          cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
+          task.statusReason = cp_task.status_reason
+          task.update
         end
 
         flash[:success] = "Task has been marked as #{status}."

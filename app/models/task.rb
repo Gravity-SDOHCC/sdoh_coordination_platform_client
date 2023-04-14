@@ -1,7 +1,7 @@
 class Task
   attr_reader :id, :status, :focus, :owner_reference, :owner_name, :requester_name,
               :requester_resource, :patient_name, :patient_resource, :outcome, :consent,
-              :outcome_type, :authored_on, :fhir_resource
+              :outcome_type, :authored_on, :status_reason, :fhir_resource
 
   def initialize(fhir_task)
     # byebug
@@ -17,6 +17,7 @@ class Task
     @outcome = get_outcome(fhir_task.output&.first)
     @consent = get_consent(@focus&.fhir_resource)
     @authored_on = fhir_task.authoredOn&.to_date
+    @status_reason = fhir_task.statusReason&.text
     @patient_name = fhir_task.for&.display
     @patient_resource = get_fhir_resource(FHIR::Patient, fhir_task.for)
   end

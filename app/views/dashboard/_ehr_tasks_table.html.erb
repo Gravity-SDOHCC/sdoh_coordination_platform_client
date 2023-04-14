@@ -97,29 +97,22 @@
                   <% content_for :modals do %>
                     <%= render "dashboard/procedure_modal", resource: referral.outcome %>
                   <% end %>
-                <% end %>
-              </td>
-            <% if type == "active" %>
-              <td class="p-3">
-
-                <% if referral.status != "accepted" %>
-                  <!--<%= link_to "/tasks/#{referral.id}/rejected", class: "action-button text-nowrap text-muted" do %>
-                    <span class="icon"><i class="bi bi-trash text-muted"></i></span>
-                    <span class="label">Reject Task</span>
-                  <% end %>
-                  <%= link_to "/tasks/#{referral.id}/accepted", class: "action-button text-nowrap text-muted" do %>
-                    <span class="icon"><i class="bi bi-check text-success"></i></span>
-                    <span class="label">Accept Task</span>
-                  <% end %>-->
+                <% elsif type == "active" && referral.status == "requested" %>
                   <%= link_to "accept/reject", "#request-action-modal-#{referral.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render "dashboard/request_action_modal", resource: referral %>
+                    <%= render "dashboard/request_action_modal", resource: referral, statuses: ["accepted", "rejected"] %>
                   <% end %>
+                <% elsif type == "active" %>
+                  <%= link_to "update task", "#request-action-modal-#{referral.id}", data: { bs_toggle: "modal" } %>
+                  <% content_for :modals do %>
+                    <%= render "dashboard/request_action_modal", resource: referral, statuses: ["in-progress", "cancelled", "completed"] %>
+                  <% end %>
+                <% elsif status == "rejected" || status == "cancelled" %>
+                  <%= referral.status_reason %>
                 <% else %>
-                 --
+                  --
                 <% end %>
               </td>
-            <% end %>
           </tr>
         <% end %>
       </tbody>
