@@ -29,6 +29,39 @@ body {
 
 }
 
+a {
+  color: #008B8B;
+
+  &:hover,
+  &:active,
+  &:focus {
+    color: darken(#008B8B, 10%);
+  }
+}
+
+.menu-tab {
+  background-color: #48A1A4;
+  color: #006666;
+}
+
+.menu-tab {
+  background-color: #48A1A4;
+  color: #004A4D;
+}
+
+.menu-tab:hover,
+.menu-tab:focus,
+.menu-tab:active {
+  background-color: #006D6F;
+  color: #ffffff;
+}
+
+.menu-tab.active {
+  background-color: darken(#006D6F, 10%);
+  color: #ffffff;
+}
+
+
 .main-header {
   border-bottom: 1px solid $global-base-border-color;
 }
