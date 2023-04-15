@@ -5,6 +5,7 @@
         <thead class="text-center">
           <tr>
             <th scope="col">Request Date</th>
+            <th scope="col">Task</th>
             <th scope="col">Priority</th>
             <th scope="col">Status</th>
             <th scope="col">Category</th>
@@ -24,9 +25,17 @@
         </thead>
         <tbody>
           <% referrals.each do |referral| %>
-            <tr>
+            <tr id="task-row-<%= referral.id %>">
+              <td><%= referral.authored_on %></td>
               <td>
-                <%= referral.authored_on %>
+                <% if referral.fhir_resource&.id.present? %>
+                  <%= link_to referral.focus&.description, "#fhir-resource-modal-#{referral.id}", data: { bs_toggle: "modal" } %>
+                  <% content_for :modals do %>
+                    <%= render "shared/fhir_resource_modal", resource: referral.fhir_resource %>
+                  <% end %>
+                <% else %>
+                  <%= referral.focus&.description|| "--"  %>
+                <% end %>
               </td>
               <td><%= referral.focus&.priority || "-" %></td>
               <td>
@@ -50,10 +59,10 @@
                 <% end %>
               </td>
               <td>
-                <% if referral.fhir_resource&.id.present? %>
-                  <%= link_to referral.focus&.category , "#fhir-resource-modal-#{referral.id}", data: { bs_toggle: "modal" } %>
+                <% if referral.focus&.fhir_resource&.id.present? %>
+                  <%= link_to referral.focus&.category , "#fhir-resource-modal-#{referral.focus&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render "shared/fhir_resource_modal", resource: referral.fhir_resource %>
+                    <%= render "shared/fhir_resource_modal", resource: referral.focus&.fhir_resource %>
                   <% end %>
                 <% else %>
                   <%= referral.focus&.category || "-" %>
@@ -93,9 +102,14 @@
               </td>
               <td>
                 <% if type == "completed" %>
-                  <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: "modal" } %>
-                  <% content_for :modals do %>
-                    <%= render "dashboard/procedure_modal", resource: referral.outcome %>
+
+                  <% if referral.outcome&.id.present? %>
+                     <%= link_to referral.outcome_type, "#referral-procedure-modal-#{referral.outcome&.id}", data: { bs_toggle: "modal" } %>
+                    <% content_for :modals do %>
+                      <%= render "dashboard/procedure_modal", resource: referral.outcome %>
+                    <% end %>
+                  <% else %>
+                    --
                   <% end %>
                 <% elsif type == "active" && referral.status == "requested" %>
                   <%= link_to "accept/reject", "#request-action-modal-#{referral.id}", data: { bs_toggle: "modal" } %>
