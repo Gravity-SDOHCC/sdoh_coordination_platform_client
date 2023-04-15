@@ -122,7 +122,7 @@
                     <%= render "dashboard/request_action_modal", resource: referral, statuses: ["in-progress", "cancelled", "completed"] %>
                   <% end %>
                 <% elsif status == "rejected" || status == "cancelled" %>
-                  <%= referral.status_reason %>
+                  <%= referral.status_reason || "--" %>
                 <% else %>
                   --
                 <% end %>
