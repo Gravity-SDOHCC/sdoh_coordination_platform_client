@@ -23,7 +23,7 @@
         </thead>
         <tbody>
           <% referrals.each do |referral| %>
-            <tr>
+            <tr id="task-row-<%= referral.id %>">
               <td><%= referral.focus&.description %></td>
               <td><%= referral.focus&.priority || "-" %></td>
               <td>
@@ -58,6 +58,8 @@
                   <% content_for :modals do %>
                     <%= render "shared/fhir_resource_modal", resource: referral.consent %>
                   <% end %>
+                <% else %>
+                --
                 <% end %>
               </td>
               <td>
@@ -66,16 +68,15 @@
                   <% content_for :modals do %>
                     <%= render "dashboard/procedure_modal", resource: referral.outcome %>
                   <% end %>
+                <% elsif type == "active" %>
+                  <%= link_to "/tasks/#{referral.id}/cancelled", class: "action-button text-nowrap text-muted" do %>
+                    <span class="icon"><i class="bi bi-trash text-muted"></i></span>
+                    <span class="label">Cancel Task</span>
+                  <% end %>
+                <% elsif status == "rejected" || status == "cancelled" %>
+                  <%= referral.status_reason || "--" %>
                 <% end %>
               </td>
-            <% if type == "active" %>
-              <td class="p-3">
-                <%= link_to "/tasks/#{referral.id}/cancelled", class: "action-button text-nowrap text-muted" do %>
-                  <span class="icon"><i class="bi bi-trash text-muted"></i></span>
-                  <span class="label">Cancel Task</span>
-                <% end %>
-              </td>
-            <% end %>
           </tr>
         <% end %>
       </tbody>
