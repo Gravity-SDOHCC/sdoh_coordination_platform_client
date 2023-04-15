@@ -3,37 +3,43 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="poll-tasks"
 export default class extends Controller {
   initialize() {
-    if (this.element.dataset.pollUrl) {
-      this.pollTasks();
-      this.startPolling();
+    const pollUrl = this.element.dataset.pollUrl;
+    if (pollUrl) {
+      this.pollTasks(pollUrl);
     }
   }
 
-  startPolling() {
-    this.pollingInterval = setInterval(() => this.pollTasks(), 60000);
-  }
-
-  pollTasks() {
-    fetch(this.element.dataset.pollUrl)
+  pollTasks(pollUrl) {
+    fetch(pollUrl)
       .then((response) => {
-        if (response.status === 440) {
-          clearInterval(this.pollingInterval);
-          window.location.reload();
-        } else {
+        if (response.ok) {
           return response.json();
+        } else {
+          throw new Error("Failed to poll tasks");
         }
       })
       .then((response) => {
-        if (response) {
-          if (response.active_ehr_tasks) {
-            document.getElementById("active-ehr-tasks-table").innerHTML = response.active_ehr_tasks;
-            document.getElementById("completed-ehr-tasks-table").innerHTML = response.completed_ehr_tasks;
-            document.getElementById("cancelled-ehr-tasks-table").innerHTML = response.cancelled_ehr_tasks;
-            document.getElementById("active-cp-tasks-table").innerHTML = response.active_cp_tasks;
-            document.getElementById("completed-cp-tasks-table").innerHTML = response.completed_cp_tasks;
-            document.getElementById("cancelled-cp-tasks-table").innerHTML = response.cancelled_cp_tasks;
+        const tables = [
+          { id: "active-ehr-tasks-table", data: response.active_ehr_tasks },
+          { id: "completed-ehr-tasks-table", data: response.completed_ehr_tasks },
+          { id: "cancelled-ehr-tasks-table", data: response.cancelled_ehr_tasks },
+          { id: "active-cp-tasks-table", data: response.active_cp_tasks },
+          { id: "completed-cp-tasks-table", data: response.completed_cp_tasks },
+          { id: "cancelled-cp-tasks-table", data: response.cancelled_cp_tasks },
+        ];
+
+        tables.forEach((table) => {
+          const tableElement = document.getElementById(table.id);
+          if (tableElement) {
+            tableElement.innerHTML = table.data;
           }
-        }
+        });
+
+        setTimeout(() => this.pollTasks(pollUrl), 60000);
+      })
+      .catch((error) => {
+        console.error(error);
+        setTimeout(() => this.pollTasks(pollUrl), 60000);
       });
   }
 }
