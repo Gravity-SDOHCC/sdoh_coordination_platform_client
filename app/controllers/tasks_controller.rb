@@ -6,8 +6,7 @@ class TasksController < ApplicationController
     cached_cp_tasks = Rails.cache.read("cp_tasks")
     cached_ehr_tasks = Rails.cache.read("ehr_tasks")
     cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
-    task_result = nil
-    sr_result = nil
+    part_of_id = ""
     begin
       task = cached_tasks.find { |t| t.id == params[:id] }&.fhir_resource
       sr_id = task.focus&.reference&.split("/")&.last
@@ -34,7 +33,7 @@ class TasksController < ApplicationController
           task.update
         elsif status == "cancelled" && part_of_id.blank?
           cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
-          task.statusReason = cp_task.status_reason
+          task.statusReason = cp_task.statusReason
           task.update
         end
 
@@ -47,7 +46,7 @@ class TasksController < ApplicationController
     end
     Rails.cache.delete("cp_tasks")
     Rails.cache.delete("ehr_tasks")
-    tab = task_result&.partOf&.present? ? "our-tasks" : "service-requests"
+    tab = part_of_id.present? ? "our-tasks" : "service-requests"
     set_active_tab(tab)
     redirect_to dashboard_path
   end
@@ -56,9 +55,9 @@ class TasksController < ApplicationController
     if !cp_client_connected?
       render json: { error: "Session expired" }, status: 440 and return
     end
-    saved_cp_tasks = Rails.cache.read("cp_tasks") || []
-    saved_ehr_tasks = Rails.cache.read("ehr_tasks") || []
-    saved_tasks = [saved_cp_tasks, saved_ehr_tasks].flatten
+    cached_cp_tasks = Rails.cache.read("cp_tasks") || []
+    cached_ehr_tasks = Rails.cache.read("ehr_tasks") || []
+    cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
     Rails.cache.delete("cp_tasks")
     Rails.cache.delete("ehr_tasks")
     success, result = fetch_tasks
@@ -74,17 +73,26 @@ class TasksController < ApplicationController
       new_ehr_tasks = Rails.cache.read("ehr_tasks") || []
       new_taks_list = [new_cp_tasks, new_ehr_tasks].flatten
       # check if any active tasks have changed status
-      updated_tasks = new_taks_list.map do |referral|
-        saved_task = saved_tasks.find { |task| task.id == referral.id }
-        if saved_task && saved_task.status != referral.status
-          referral
-        else
-          nil
+      updated_cp_tasks = []
+      updated_ehr_tasks = []
+      new_taks_list.each do |task|
+        saved_task = cached_tasks.find { |t| t.id == task.id }
+        if saved_task && saved_task.status != task.status
+          if task.fhir_resource.partOf.present?
+            updated_cp_tasks << task
+          else
+            updated_ehr_tasks << task
+          end
         end
-      end.compact
-      task_names = updated_tasks.map { |t| t.focus&.description }.join(", ")
-      task_status = updated_tasks.map { |t| t.status }.join(", ")
-      flash[:success] = "#{task_names} status has been updated to #{task_status}" if updated_tasks.present?
+      end
+      @cp_task_notifications = updated_cp_tasks.map do |t|
+        msg = t.status == "requested" ? "new task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        [msg, t.id]
+      end
+      @ehr_task_notifications = updated_ehr_tasks.map do |t|
+        msg = t.status == "requested" ? "new task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        [msg, t.id]
+      end
     else
       Rails.logger.error("Unable to fetch tasks: #{result}")
     end
@@ -95,10 +103,9 @@ class TasksController < ApplicationController
       active_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @active_ehr_tasks, type: "active" }),
       completed_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @completed_ehr_tasks, type: "completed" }),
       cancelled_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @cancelled_ehr_tasks, type: "cancelled" }),
-      flash: flash[:success],
+      cp_task_notifications: @cp_task_notifications.to_json,
+      ehr_task_notifications: @ehr_task_notifications.to_json,
     }
-    flash.discard
-    # render partial: "action_steps/table", locals: { referrals: @active_referrals, type: "active" }
   end
 
   private
