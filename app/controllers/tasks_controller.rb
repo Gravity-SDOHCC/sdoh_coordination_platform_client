@@ -1,48 +1,43 @@
 class TasksController < ApplicationController
   before_action :require_cp_client
-  before_action :get_all_supporting_resources, only: [:create]
+  before_action :get_cbo_organizations, only: [:poll_tasks]
 
   def update_task
     cached_cp_tasks = Rails.cache.read("cp_tasks")
     cached_ehr_tasks = Rails.cache.read("ehr_tasks")
-    task_result = ""
-    sr_result = ""
+    cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
+    part_of_id = ""
     begin
-      task = FHIR::Task.read(params[:id])
+      task = cached_tasks.find { |t| t.id == params[:id] }&.fhir_resource
       sr_id = task.focus&.reference&.split("/")&.last
       service_request = FHIR::ServiceRequest.read(sr_id)
       if task.present?
+        status = params[:status] == "status" ? params[:task_status] : params[:status]
         part_of_id = task.partOf&.first&.reference&.split("/")&.last
-        task.status = params[:status]
-        task_result = task.update
-        if params[:status] == "accepted" && part_of_id.present?
-          # if the cp task is accepted, mark the ehr task as in-progress
-          ehr_task = FHIR::Task.read(part_of_id)
-          ehr_task.status = "in-progress"
-          result = ehr_task.update
-        elsif params[:status] == "accepted" && part_of_id.blank?
-          # if the ehr task is accepted, create the cp task and service request
+        task.status = status
+        if status == "accepted"
+          task_result = task.update
           create_cp_task_service_request(task_result, service_request)
+        elsif status == "in-progress"
+          task.update
+        elsif status == "rejected"
+          task.statusReason = { text: params[:status_reason] }
+          task.update
+        elsif status == "completed"
+          cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
+          task.output = cp_task.output
+          task.update
+        elsif status == "cancelled" && part_of_id.present?
+          ehr_task = cached_tasks.find { |t| t.id == part_of_id }&.fhir_resource
+          task.statusReason = ehr_task.statusReason
+          task.update
+        elsif status == "cancelled" && part_of_id.blank?
+          cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
+          task.statusReason = cp_task.statusReason
+          task.update
         end
 
-        if (params[:status] == "canceled" || params[:status] == "rejected") && part_of_id.present?
-          # if the cp task is canceled/rejected, mark the ehr task as canceled/rejected
-          service_request.status = "revoked"
-          sr_result = service_request.update
-          ehr_task = FHIR::Task.read(part_of_id)
-          ehr_task.status = params[:status]
-          ehr_task_result = ehr_task.update
-        end
-
-        if params[:status] == "completed" && part_of_id.present?
-          # if the cp task is completed, mark the ehr task as completed
-          cached_ehr_task = cached_ehr_tasks.find { |t| t.id == part_of_id }
-          fhir_ehr_task = cached_ehr_task&.fhir_resource
-          fhir_ehr_task&.status = "completed"
-          result = fhir_ehr_task&.update
-        end
-
-        flash[:success] = "Task has been marked as #{params[:status]}."
+        flash[:success] = "Task has been marked as #{status}."
       else
         flash[:error] = "Unable to update task: task not found"
       end
@@ -51,7 +46,7 @@ class TasksController < ApplicationController
     end
     Rails.cache.delete("cp_tasks")
     Rails.cache.delete("ehr_tasks")
-    tab = task_result&.partOf&.present? ? "our-tasks" : "service-requests"
+    tab = part_of_id.present? ? "our-tasks" : "service-requests"
     set_active_tab(tab)
     redirect_to dashboard_path
   end
@@ -60,9 +55,9 @@ class TasksController < ApplicationController
     if !cp_client_connected?
       render json: { error: "Session expired" }, status: 440 and return
     end
-    saved_cp_tasks = Rails.cache.read("cp_tasks") || []
-    saved_ehr_tasks = Rails.cache.read("ehr_tasks") || []
-    saved_tasks = [saved_cp_tasks, saved_ehr_tasks].flatten
+    cached_cp_tasks = Rails.cache.read("cp_tasks") || []
+    cached_ehr_tasks = Rails.cache.read("ehr_tasks") || []
+    cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
     Rails.cache.delete("cp_tasks")
     Rails.cache.delete("ehr_tasks")
     success, result = fetch_tasks
@@ -70,39 +65,46 @@ class TasksController < ApplicationController
     if success
       @active_cp_tasks = result["cp_tasks"]&.dig("active") || []
       @completed_cp_tasks = result["cp_tasks"]&.dig("completed") || []
-      @canceled_cp_tasks = result["cp_tasks"]&.dig("canceled") || []
+      @cancelled_cp_tasks = result["cp_tasks"]&.dig("cancelled") || []
       @active_ehr_tasks = result["ehr_tasks"]&.dig("active") || []
       @completed_ehr_tasks = result["ehr_tasks"]&.dig("completed") || []
-      @canceled_ehr_tasks = result["ehr_tasks"]&.dig("canceled") || []
+      @cancelled_ehr_tasks = result["ehr_tasks"]&.dig("cancelled") || []
       new_cp_tasks = Rails.cache.read("cp_tasks") || []
       new_ehr_tasks = Rails.cache.read("ehr_tasks") || []
       new_taks_list = [new_cp_tasks, new_ehr_tasks].flatten
       # check if any active tasks have changed status
-      updated_tasks = new_taks_list.map do |referral|
-        saved_task = saved_tasks.find { |task| task.id == referral.id }
-        if saved_task && saved_task.status != referral.status
-          referral
-        else
-          nil
+      updated_cp_tasks = []
+      updated_ehr_tasks = []
+      new_taks_list.each do |task|
+        saved_task = cached_tasks.find { |t| t.id == task.id }
+        if saved_task && saved_task.status != task.status
+          if task.fhir_resource.partOf.present?
+            updated_cp_tasks << task
+          else
+            updated_ehr_tasks << task
+          end
         end
-      end.compact
-      task_names = updated_tasks.map { |t| t.focus&.description }.join(", ")
-      task_status = updated_tasks.map { |t| t.status }.join(", ")
-      flash[:success] = "#{task_names} status has been updated to #{task_status}" if updated_tasks.present?
+      end
+      @cp_task_notifications = updated_cp_tasks.map do |t|
+        msg = t.status == "requested" ? "new CP task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        [msg, t.id]
+      end
+      @ehr_task_notifications = updated_ehr_tasks.map do |t|
+        msg = t.status == "requested" ? "new referral source task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        [msg, t.id]
+      end
     else
       Rails.logger.error("Unable to fetch tasks: #{result}")
     end
+    ActionCable.server.broadcast "notifications", { cp_task_notifications: @cp_task_notifications.to_json, ehr_task_notifications: @ehr_task_notifications.to_json }
     render json: {
       active_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @active_cp_tasks, type: "active" }),
       completed_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @completed_cp_tasks, type: "completed" }),
-      canceled_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @canceled_cp_tasks, type: "cancelled" }),
+      cancelled_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @cancelled_cp_tasks, type: "cancelled" }),
       active_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @active_ehr_tasks, type: "active" }),
       completed_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @completed_ehr_tasks, type: "completed" }),
-      canceled_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @canceled_ehr_tasks, type: "cancelled" }),
-      flash: flash[:success],
+      cancelled_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @cancelled_ehr_tasks, type: "cancelled" }),
     }
-    flash.discard
-    # render partial: "action_steps/table", locals: { referrals: @active_referrals, type: "active" }
   end
 
   private
@@ -117,7 +119,7 @@ class TasksController < ApplicationController
     # Creating CP task
     cp_task = ehr_task
     cp_task.partOf = [{ reference: "Task/#{ehr_task.id}" }]
-    cp_task.status = "received"
+    cp_task.status = "requested"
     cp_task.authoredOn = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S.%3NZ")
     # TODO cp_task.requester = {reference: "Organization/#{current_user.id}", display: current_user.name}
     cp_task.requester = {
@@ -125,8 +127,8 @@ class TasksController < ApplicationController
       "display": "ABC Coordination Platform",
     }
     cp_task.owner = {
-      "reference": "Organization/SDOHCC-OrganizationClinicExample",
-      "display": "Better Health Clinic",
+      "reference": "Organization/#{params[:cbo_organization_id]}",
+      "display": Rails.cache.read("cbo")&.find { |o| o.id == params[:cbo_organization_id] }&.name,
     }
     cp_task.focus = { reference: "ServiceRequest/#{result_cp_request.id}" }
     cp_task.id = nil

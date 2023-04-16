@@ -4,12 +4,19 @@ This is a reference implementation for the Coordination Platform (CP) system as 
 
 CPs are intermediaries who take on responsibility for managing SDOH referrals and ensuring they are executed by appropriate service delivery organizations. These systems must respond to referral fulfillment Tasks received from [Clinical Care Referral Sources](https://build.fhir.org/ig/HL7/fhir-sdoh-clinicalcare/CapabilityStatement-SDOHCC-ReferralSource.html) (e.g. EHRs) and also the initiation and management of referral fulfillment Tasks subsequently directed out to [Referral Recipients](https://build.fhir.org/ig/HL7/fhir-sdoh-clinicalcare/CapabilityStatement-SDOHCC-ReferralRecipient.html) (CBO).
 
-
-## Dependencies
-- Rails 7
+## Prerequisites
 - ruby 2.7.5
 - postgresql
 - memcache
+- Node.js 14.0.0 or higher
+- Yarn 1.22.0 or higher
+
+## Built With
+- Rails 7
+- Bootstrap 5
+- Stimulus
+- ActionCable
+
 
 ## Running Locally
 - start postgresql and memcache on your sysmtem. This is important as the app will not
@@ -28,7 +35,7 @@ To start the application, simply run `docker-compose up`. The app will be availa
 Press `control + c` or `ctrl + c` to stop the app.
 
 ## Using the App (Demo)
-This CP client is configured to work with the [Gravity CP FHIR server RI]() and the [Gravity EHR FHIR server RI](),
+This CP client is configured to work with the [Gravity CP FHIR server RI](),
 but can also integrate with other CP/EHR FHIR servers for testing.
 
 Things you may want to cover:

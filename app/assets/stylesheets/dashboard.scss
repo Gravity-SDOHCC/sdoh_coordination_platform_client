@@ -29,6 +29,39 @@ body {
 
 }
 
+a {
+  color: #008B8B;
+
+  &:hover,
+  &:active,
+  &:focus {
+    color: darken(#008B8B, 10%);
+  }
+}
+
+.menu-tab {
+  background-color: #48A1A4;
+  color: #006666;
+}
+
+.menu-tab {
+  background-color: #48A1A4;
+  color: #004A4D;
+}
+
+.menu-tab:hover,
+.menu-tab:focus,
+.menu-tab:active {
+  background-color: #006D6F;
+  color: #ffffff;
+}
+
+.menu-tab.active {
+  background-color: darken(#006D6F, 10%);
+  color: #ffffff;
+}
+
+
 .main-header {
   border-bottom: 1px solid $global-base-border-color;
 }
@@ -138,6 +171,47 @@ body {
     }
   }
 }
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 200px;
+  max-width: 350px;
+  z-index: 1051;
+}
+
+.toast .close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.toast--notice {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #0069d9;
+}
+
+.toast--success {
+  background-color: #28a745;
+  color: #fff;
+  border-color: #218838;
+}
+
+.toast--error {
+  background-color: #dc3545;
+  color: #fff;
+  border-color: #c82333;
+}
+
+.toast--alert {
+  background-color: #ffc107;
+  color: #212529;
+  border-color: #e0a800;
+}
+
+
 
 
 @media (max-width: 767px) {

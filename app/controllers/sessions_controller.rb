@@ -2,7 +2,7 @@ class SessionsController < ApplicationController
   # Get /home
   def index
     if cp_client_connected?
-      flash[:notice] = "You are already connected to a FHIR server (#{get_cp_server_base_url})"
+      flash[:notice] = "You are already connected to a FHIR server (#{get_cp_server_base_url}). Logout to connrct to another FHIR server"
       redirect_to dashboard_path
     else
       @fhir_servers = FhirServer.all

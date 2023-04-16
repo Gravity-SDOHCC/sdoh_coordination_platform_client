@@ -7,16 +7,16 @@
         <div class="logo-container">
           <a href="<%= root_path %>">
             <%= image_tag 'logo.svg', class: 'image', alt: 'logo' %>
-            <span class="name">Coordination Platform</span>
+            <span class="name">ABC Coordination Platform</span>
           </a>
         </div>
       </div>
       <div class="col-auto">
         <ul class="nav nav-tabs nav-fill mb-3" id="dashboardTabs" role="tablist">
-          <%= render partial: 'tab', locals: {id: 'service-requests', label: 'Service Requests', active: true} %>
-          <%= render partial: 'tab', locals: {id: 'our-tasks', label: 'Our Tasks', active: false} %>
-          <%= render partial: 'tab', locals: {id: 'requesting-organizations', label: 'Requesting Organizations', active: false} %>
-          <%= render partial: 'tab', locals: {id: 'cbo', label: 'Community Based Organizations', active: false} %>
+          <%= render partial: 'tab', locals: {id: 'service-requests', label: 'Service Requests', active: active_tab == "service-requests"} %>
+          <%= render partial: 'tab', locals: {id: 'our-tasks', label: 'Our Tasks', active: active_tab == "our-tasks"} %>
+          <%= render partial: 'tab', locals: {id: 'requesting-organizations', label: 'Requesting Organizations', active: active_tab == "requesting-organizations"} %>
+          <%= render partial: 'tab', locals: {id: 'cbo', label: 'Community Based Organizations', active: active_tab == "cbo"} %>
         </ul>
       </div>
       <div class="col-auto">

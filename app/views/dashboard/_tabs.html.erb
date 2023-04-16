@@ -1,47 +1,10 @@
 <!-- app/views/dashboard/_tabs.html.erb -->
 
-<div>
+<div data-controller="poll-tasks" data-poll-url="<%= cp_client_connected? ? poll_tasks_path : '' %>">
   <div class="tab-content mt-2">
-    <%= render partial: "service_requests", locals: { id: "service-requests", active: @active_tab == "service-requests" } %>
-    <%= render partial: "our_tasks", locals: { id: "our-tasks", active: @active_tab == "our-tasks" } %>
-    <%= render partial: "requesting_organizations", locals: { id: "requesting-organizations", active: @active_tab == "requesting-organization" } %>
-    <%= render partial: "cbo_organizations", locals: { id: "cbo", active: @active_tab == "cbo" } %>
+    <%= render partial: "service_requests", locals: { id: "service-requests", active: active_tab == "service-requests"} %>
+    <%= render partial: "our_tasks", locals: { id: "our-tasks", active: active_tab == "our-tasks" } %>
+    <%= render partial: "requesting_organizations", locals: { id: "requesting-organizations", active: active_tab == "requesting-organizations" } %>
+    <%= render partial: "cbo_organizations", locals: { id: "cbo", active: active_tab == "cbo" } %>
   </div>
 </div>
-
-<% if cp_client_connected? %>
-  <script>
-    const pollTasks = () => {
-      fetch("<%= poll_tasks_path %>")
-        .then(response => {
-          if (response.status === 440) {
-            // Stop the polling when the session has expired
-            clearInterval(pollingInterval);
-            // Reload when the session has expired
-          window.location.reload();
-          } else {
-            return response.json();
-          }
-        })
-        .then(response => {
-          if (response) {
-            if (response.active_ehr_tasks) {
-              document.getElementById("active-ehr-tasks-table").innerHTML = response.active_ehr_tasks;
-              document.getElementById("completed-ehr-tasks-table").innerHTML = response.completed_ehr_tasks;
-              document.getElementById("canceled-ehr-tasks-table").innerHTML = response.canceled_ehr_tasks;
-              document.getElementById("active-cp-tasks-table").innerHTML = response.active_cp_tasks;
-              document.getElementById("completed-cp-tasks-table").innerHTML = response.completed_cp_tasks;
-              document.getElementById("canceled-cp-tasks-table").innerHTML = response.canceled_cp_tasks;
-            }
-
-            if (response.flash) {
-              const flashContainer = document.getElementById("flash-container");
-            flashContainer.innerHTML = `<div class="alert alert-notice alert-dismissible fade show" role="alert">${response.flash} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
-            }
-          }
-        });
-    };
-
-    setInterval(pollTasks, 60000);
-  </script>
-<% end %>

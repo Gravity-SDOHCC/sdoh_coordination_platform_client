@@ -4,5 +4,8 @@
 
 import { application } from "./application"
 
-import HelloController from "./hello_controller"
-application.register("hello", HelloController)
+import PollTasksController from "./poll_tasks_controller"
+application.register("poll-tasks", PollTasksController)
+
+import ToastsController from "./toasts_controller"
+application.register("toasts", ToastsController)
