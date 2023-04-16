@@ -86,16 +86,17 @@ class TasksController < ApplicationController
         end
       end
       @cp_task_notifications = updated_cp_tasks.map do |t|
-        msg = t.status == "requested" ? "new task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        msg = t.status == "requested" ? "new CP task requested" : "task #{t.focus&.description} was updated to #{t.status}"
         [msg, t.id]
       end
       @ehr_task_notifications = updated_ehr_tasks.map do |t|
-        msg = t.status == "requested" ? "new task requested" : "task #{t.focus&.description} was updated to #{t.status}"
+        msg = t.status == "requested" ? "new referral source task requested" : "task #{t.focus&.description} was updated to #{t.status}"
         [msg, t.id]
       end
     else
       Rails.logger.error("Unable to fetch tasks: #{result}")
     end
+    ActionCable.server.broadcast "notifications", { cp_task_notifications: @cp_task_notifications.to_json, ehr_task_notifications: @ehr_task_notifications.to_json }
     render json: {
       active_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @active_cp_tasks, type: "active" }),
       completed_cp_tasks: render_to_string(partial: "dashboard/cp_tasks_table", locals: { referrals: @completed_cp_tasks, type: "completed" }),
@@ -103,8 +104,6 @@ class TasksController < ApplicationController
       active_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @active_ehr_tasks, type: "active" }),
       completed_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @completed_ehr_tasks, type: "completed" }),
       cancelled_ehr_tasks: render_to_string(partial: "dashboard/ehr_tasks_table", locals: { referrals: @cancelled_ehr_tasks, type: "cancelled" }),
-      cp_task_notifications: @cp_task_notifications.to_json,
-      ehr_task_notifications: @ehr_task_notifications.to_json,
     }
   end
 
