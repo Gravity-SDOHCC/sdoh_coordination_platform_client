@@ -56,7 +56,7 @@
                 <% if referral.consent.present? %>
                   <%= link_to referral.consent.code, "#fhir-resource-modal-#{referral.consent&.id}", data: { bs_toggle: "modal" } %>
                   <% content_for :modals do %>
-                    <%= render "shared/fhir_resource_modal", resource: referral.consent %>
+                    <%= render "shared/fhir_resource_modal", resource: referral.consent.fhir_resource %>
                   <% end %>
                 <% else %>
                 --
