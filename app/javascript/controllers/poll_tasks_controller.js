@@ -35,11 +35,11 @@ export default class extends Controller {
           }
         });
 
-        setTimeout(() => this.pollTasks(pollUrl), 28800000);
+        setTimeout(() => this.pollTasks(pollUrl), 10000);
       })
       .catch((error) => {
         console.error(error);
-        setTimeout(() => this.pollTasks(pollUrl), 28800000);
+        setTimeout(() => this.pollTasks(pollUrl), 10000);
       });
   }
 }
