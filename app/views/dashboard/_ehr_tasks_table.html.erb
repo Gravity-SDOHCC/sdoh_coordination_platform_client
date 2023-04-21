@@ -24,7 +24,7 @@
           </tr>
         </thead>
         <tbody>
-          <% referrals.each do |referral| %>
+          <% referrals&.each do |referral| %>
             <tr id="task-row-<%= referral.id %>">
               <td><%= referral.authored_on %></td>
               <td>
