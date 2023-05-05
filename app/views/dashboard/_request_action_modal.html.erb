@@ -32,8 +32,9 @@
                 </select>
               </div>
               <div class="label-value cbo-organization-container" style="display:none;">
-                <span class="fw-semibold">CBO Organization:</span>
-                <select name="cbo_organization_id" class="form-select small-text" id="cbo_organization-<%= resource.id %>">
+                <span class="fw-semibold mb-2">Assign task to a CBO organization:</span>
+                <select name="cbo_organization_id" class="form-select small-text" id="cbo_organization-<%= resource.id %>" required>
+                  <option value="">Select a CBO organization</option>
                   <% @cbo_organizations.each do |cbo_organization| %>
                     <option value="<%= cbo_organization.id %>"><%= cbo_organization.name %></option>
                   <% end %>
