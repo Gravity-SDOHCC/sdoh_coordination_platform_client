@@ -2,6 +2,17 @@ module ApplicationHelper
   include SessionsHelper
   include TasksHelper
 
+  def organizations
+    Rails.cache.fetch("organizations", expires_in: 1.day) do
+      response = FHIR::Organization.search(type: 'cbo', _sort: "-_lastUpdated")
+
+      if response.is_a?(FHIR::Bundle)
+        entries = response.entry.map(&:resource)
+        entries.map { |entry| Organization.new(entry) }
+      end
+    end
+  end
+
   def bootstrap_class_for(flash_type)
     case flash_type.to_sym
     when :success

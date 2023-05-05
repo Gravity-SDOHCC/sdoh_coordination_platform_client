@@ -1,0 +1,48 @@
+<div class="modal fade" id="add-organization-modal" tabindex="-1" role="dialog" aria-labelledby="newOrganizationDialogTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newOrganizationDialogTitle">Add New Organization</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <%= form_with url: organizations_path, method: :post, id: "organization-form", class: "form" do |f| %>
+          <div class="floating-label mb-3">
+            <%= f.text_field :name, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Name", required: true %>
+          </div>
+          <div class="row row-cols-1 row-cols-md-2 g-0 g-md-3">
+            <div class="floating-label mb-3">
+              <%= f.text_field :street, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Street Address", required: true %>
+            </div>
+            <div class="floating-label mb-3">
+              <%= f.text_field :city, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "City", required: true %>
+            </div>
+          </div>
+          <div class="row row-cols-1 row-cols-md-2 g-0 g-md-3">
+            <div class="floating-label mb-3">
+              <%= f.text_field :state, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "State: e.g. NY", required: true %>
+            </div>
+            <div class="floating-label mb-3">
+              <%= f.text_field :postal_code, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Postal Code: e.g. 20584", required: true %>
+            </div>
+          </div>
+          <div class="row row-cols-1 row-cols-md-2 g-0 g-md-3">
+            <div class="floating-label mb-3">
+              <%= f.telephone_field :phone, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Phone number: e.g. 555-555-5555" %>
+            </div>
+            <div class="floating-label mb-3">
+              <%= f.email_field :email, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Email: e.g. example@organization.com" %>
+            </div>
+            <div class="floating-label mb-3">
+              <%= f.url_field :url, class: "form-control floating-input border-0 border-bottom border-gray-300 bg-transparent peer", placeholder: "Server Base URL: e.g. https://fhirserver.com/fhir" %>
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <%= f.submit "Create Organization", class: "btn btn-primary" %>
+      </div>
+      <% end %>
+    </div>
+  </div>
+</div>
