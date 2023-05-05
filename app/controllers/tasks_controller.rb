@@ -1,7 +1,6 @@
 class TasksController < ApplicationController
   before_action :require_cp_client
   before_action :get_cbo_organizations, only: [:poll_tasks]
-
   def update_task
     cached_cp_tasks = Rails.cache.read("cp_tasks")
     cached_ehr_tasks = Rails.cache.read("ehr_tasks")
@@ -25,7 +24,7 @@ class TasksController < ApplicationController
           task.update
         elsif status == "completed"
           cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
-          task.output = cp_task.output
+          task.output = cp_task&.output
           task.update
         elsif status == "cancelled" && part_of_id.present?
           ehr_task = cached_tasks.find { |t| t.id == part_of_id }&.fhir_resource
@@ -33,7 +32,7 @@ class TasksController < ApplicationController
           task.update
         elsif status == "cancelled" && part_of_id.blank?
           cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
-          task.statusReason = cp_task.statusReason
+          task.statusReason = cp_task&.statusReason
           task.update
         end
 
@@ -122,10 +121,7 @@ class TasksController < ApplicationController
     cp_task.status = "requested"
     cp_task.authoredOn = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S.%3NZ")
     # TODO cp_task.requester = {reference: "Organization/#{current_user.id}", display: current_user.name}
-    cp_task.requester = {
-      "reference": "Organization/SDOHCC-OrganizationCoordinationPlatformExample",
-      "display": "ABC Coordination Platform",
-    }
+    cp_task.requester = ehr_task.owner
     cp_task.owner = {
       "reference": "Organization/#{params[:cbo_organization_id]}",
       "display": Rails.cache.read("cbo")&.find { |o| o.id == params[:cbo_organization_id] }&.name,

@@ -47,8 +47,7 @@ module TasksHelper
           # requester_id = get_id_from_reference(task.requester)
           # requester = requester_entries.find { |requester| requester.id == requester_id }
 
-          # TODO: This is temporary. with auth, the org id will be in the token and we can use it to filter
-          if task.requester.reference.include?("SDOHCC-OrganizationCoordinationPlatformExample")
+          if task.partOf.present?
             cp_tasks << Task.new(task)
           else
             ehr_tasks << Task.new(task)
