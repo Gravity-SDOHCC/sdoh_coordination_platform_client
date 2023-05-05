@@ -3,6 +3,14 @@
 <li class="nav-item" role="presentation">
   <a class="nav-link <%= 'active' if active %> menu-tab d-flex" id="<%= id %>-tab" data-bs-toggle="tab" href="#<%= id %>" role="tab" aria-controls="<%= id %>" aria-selected="<%= active %>" data-controller="notifications">
     <%= label %>
+
+    <% if label == 'Our Tasks' && @active_cp_tasks.present? %>
+      <span class="position-relative top-0 ms-3 translate-middle badge rounded-pill bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="active task">
+        <%= @active_cp_tasks&.count %>
+        <span class="visually-hidden">active CP tasks</span>
+      </span>
+    <% end %>
+
     <div class="dropdown">
       <span class="badge bg-primary ms-2 dropdown-toggle" id="<%= id %>-notification-count" style="display:none;" data-bs-toggle="dropdown" aria-expanded="false"></span>
       <ul class="dropdown-menu" id="<%= id %>-notification-dropdown" aria-labelledby="<%= id %>-notification-count">
