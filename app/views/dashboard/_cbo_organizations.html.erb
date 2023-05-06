@@ -1,19 +1,19 @@
 <div class="tab-pane fade <%= 'show active' if active %>" id="<%= id %>" role="tabpanel" aria-labelledby="<%= id %>-tab">
   <div class="position-relative shadow overflow-x-auto rounded-lg-custom mx-3 my-4">
-    <div class="d-flex align-items-center justify-content-between pb-4 mt-4 mx-4">
+    <div class="d-flex align-items-center justify-content-between pb-4 mt-4 pt-2 mx-4">
       <h6 class="text-left fw-semibold text-secondary">CBO Organizations</h6>
       <button class="action-button btn btn-sm" data-bs-toggle="modal" data-bs-target="#add-organization-modal">
         <span class="icon"><i class="bi bi-plus-lg text-primary"></i></span>
         <span class="label">Add Organization</span>
       </button>
-      <% content_for :modals do %>
-        <%= render "dashboard/add_organization_modal" %>
-      <% end %>
     </div>
+    <% content_for :modals do %>
+      <%= render "dashboard/add_organization_modal" %>
+    <% end %>
     <% if organizations.nil? %>
       <p class="text-muted text-center pb-2">Unable to fetch organizations.</p>
     <% elsif organizations.empty? %>
-      <p >No organization found.</p>
+      <p class="text-muted text-center pb-2">No organization found.</p>
     <% else %>
       <table class="table table-sm text-center text-xs-custom fw-semibold">
         <thead class="text-xs-custom text-gray-700-custom text-uppercase bg-gray-50-custom">
