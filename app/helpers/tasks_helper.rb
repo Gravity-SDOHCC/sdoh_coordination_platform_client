@@ -48,9 +48,9 @@ module TasksHelper
           # requester = requester_entries.find { |requester| requester.id == requester_id }
 
           if task.partOf.present?
-            cp_tasks << Task.new(task)
+            cp_tasks << Task.new(task, client)
           else
-            ehr_tasks << Task.new(task)
+            ehr_tasks << Task.new(task, client)
           end
         end
 
