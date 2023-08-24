@@ -1,7 +1,9 @@
 class TasksController < ApplicationController
   before_action :require_cp_client
   before_action :get_cbo_organizations, only: [:poll_tasks]
+
   def update_task
+    cp_client = get_cp_client
     cached_cp_tasks = Rails.cache.read("cp_tasks")
     cached_ehr_tasks = Rails.cache.read("ehr_tasks")
     cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
@@ -9,31 +11,31 @@ class TasksController < ApplicationController
     begin
       task = cached_tasks.find { |t| t.id == params[:id] }&.fhir_resource
       sr_id = task.focus&.reference&.split("/")&.last
-      service_request = FHIR::ServiceRequest.read(sr_id)
+      service_request = cp_client.read(FHIR::ServiceRequest, sr_id)
       if task.present?
         status = params[:status] == "status" ? params[:task_status] : params[:status]
         part_of_id = task.partOf&.first&.reference&.split("/")&.last
         task.status = status
         if status == "accepted"
-          task_result = task.update
+          task_result = cp_client.update(task, task.id).resource
           create_cp_task_service_request(task_result, service_request)
         elsif status == "in-progress"
-          task.update
+          cp_client.update(task, task.id)
         elsif status == "rejected"
           task.statusReason = { text: params[:status_reason] }
-          task.update
+          cp_client.update(task, task.id)
         elsif status == "completed"
           cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
           task.output = cp_task&.output
-          task.update
+          cp_client.update(task, task.id)
         elsif status == "cancelled" && part_of_id.present?
           ehr_task = cached_tasks.find { |t| t.id == part_of_id }&.fhir_resource
           task.statusReason = ehr_task.statusReason
-          task.update
+          cp_client.update(task, task.id)
         elsif status == "cancelled" && part_of_id.blank?
           cp_task = cached_cp_tasks.map(&:fhir_resource).find { |t| t.partOf.first&.reference&.include?(task.id) }
           task.statusReason = cp_task&.statusReason
-          task.update
+          cp_client.update(task, task.id)
         end
 
         flash[:success] = "Task has been marked as #{status}."
@@ -114,7 +116,7 @@ class TasksController < ApplicationController
     cp_request.basedOn = [{ reference: "ServiceRequest/#{ehr_request.id}" }]
     cp_request.intent = "original-order"
     cp_request.id = nil
-    result_cp_request = cp_request.create
+    result_cp_request = cp_client.create(cp_request).resource
     # Creating CP task
     cp_task = ehr_task
     cp_task.partOf = [{ reference: "Task/#{ehr_task.id}" }]
@@ -128,6 +130,6 @@ class TasksController < ApplicationController
     }
     cp_task.focus = { reference: "ServiceRequest/#{result_cp_request.id}" }
     cp_task.id = nil
-    cp_task.create
+    cp_client.create(cp_task).resource
   end
 end
