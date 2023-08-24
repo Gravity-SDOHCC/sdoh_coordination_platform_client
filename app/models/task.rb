@@ -42,9 +42,9 @@ class Task
     resource_id = get_id_from_reference(ref)
     return if resource_id.blank?
 
-    fhir_resource = cp_client.read(fhir_class, resource_id)
+    fhir_resource = cp_client.read(fhir_class, resource_id).resource
     # sometimes for some reason read returns FHIR::Bundle
-    fhir_resource = fhir_resource&.resource&.entry&.first&.resource if fhir_resource.is_a?(FHIR::Bundle)
+    fhir_resource = fhir_resource&.entry&.first&.resource if fhir_resource.is_a?(FHIR::Bundle)
     fhir_resource
   end
 

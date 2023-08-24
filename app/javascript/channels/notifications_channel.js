@@ -10,7 +10,7 @@ consumer.subscriptions.create("NotificationsChannel", {
     menuItems.forEach((menuItem) => {
       const notificationCount = document.getElementById(`${menuItem.id}-notification-count`);
       const notifications = JSON.parse(data[menuItem.notificationId] || "[]");
-      if (notifications.length > 0) {
+      if (notifications?.length > 0) {
         let count = parseInt(notificationCount.innerText, 10) || 0;
         count += notifications.length;
 
