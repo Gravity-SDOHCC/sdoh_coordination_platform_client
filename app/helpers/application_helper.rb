@@ -4,7 +4,7 @@ module ApplicationHelper
 
   def organizations
     Rails.cache.fetch(organizations_key, expires_in: 1.day) do
-      response = get_client.search(FHIR::Organization, search: {  parameters: { type: 'cbo', _sort: "-_lastUpdated" }}).resource
+      response = get_cp_client.search(FHIR::Organization, search: {  parameters: { type: 'cbo', _sort: "-_lastUpdated" }}).resource
 
       if response.is_a?(FHIR::Bundle)
         entries = response.entry.map(&:resource)

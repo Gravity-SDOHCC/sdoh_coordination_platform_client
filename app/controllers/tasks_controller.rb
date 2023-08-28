@@ -4,14 +4,14 @@ class TasksController < ApplicationController
 
   def update_task
     cp_client = get_cp_client
-    cached_cp_tasks = Rails.cache.read("cp_tasks")
-    cached_ehr_tasks = Rails.cache.read("ehr_tasks")
-    cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
+    cached_cp_tasks = Rails.cache.read(cp_tasks_key)
+    cached_ehr_tasks = Rails.cache.read(ehr_tasks_key)
+    cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten.compact
     part_of_id = ""
     begin
       task = cached_tasks.find { |t| t.id == params[:id] }&.fhir_resource
       sr_id = task.focus&.reference&.split("/")&.last
-      service_request = cp_client.read(FHIR::ServiceRequest, sr_id)
+      service_request = cp_client.read(FHIR::ServiceRequest, sr_id).resource
       if task.present?
         status = params[:status] == "status" ? params[:task_status] : params[:status]
         part_of_id = task.partOf&.first&.reference&.split("/")&.last
@@ -45,8 +45,8 @@ class TasksController < ApplicationController
     rescue => e
       flash[:error] = "Unable to update task: #{e.message}"
     end
-    Rails.cache.delete("cp_tasks")
-    Rails.cache.delete("ehr_tasks")
+    Rails.cache.delete(cp_tasks_key)
+    Rails.cache.delete(ehr_tasks_key)
     tab = part_of_id.present? ? "our-tasks" : "service-requests"
     set_active_tab(tab)
     redirect_to dashboard_path
@@ -56,11 +56,11 @@ class TasksController < ApplicationController
     if !cp_client_connected?
       render json: { error: "Session expired" }, status: 440 and return
     end
-    cached_cp_tasks = Rails.cache.read("cp_tasks") || []
-    cached_ehr_tasks = Rails.cache.read("ehr_tasks") || []
+    cached_cp_tasks = Rails.cache.read(cp_tasks_key) || []
+    cached_ehr_tasks = Rails.cache.read(ehr_tasks_key) || []
     cached_tasks = [cached_cp_tasks, cached_ehr_tasks].flatten
-    Rails.cache.delete("cp_tasks")
-    Rails.cache.delete("ehr_tasks")
+    Rails.cache.delete(cp_tasks_key)
+    Rails.cache.delete(ehr_tasks_key)
     success, result = fetch_tasks
 
     if success
@@ -70,8 +70,8 @@ class TasksController < ApplicationController
       @active_ehr_tasks = result["ehr_tasks"]&.dig("active") || []
       @completed_ehr_tasks = result["ehr_tasks"]&.dig("completed") || []
       @cancelled_ehr_tasks = result["ehr_tasks"]&.dig("cancelled") || []
-      new_cp_tasks = Rails.cache.read("cp_tasks") || []
-      new_ehr_tasks = Rails.cache.read("ehr_tasks") || []
+      new_cp_tasks = Rails.cache.read(cp_tasks_key) || []
+      new_ehr_tasks = Rails.cache.read(ehr_tasks_key) || []
       new_taks_list = [new_cp_tasks, new_ehr_tasks].flatten
       # check if any active tasks have changed status
       updated_cp_tasks = []
