@@ -40,7 +40,7 @@ class SessionsController < ApplicationController
   # delete /disconnect
   def destroy
     reset_session
-    Rails.cache.clear
+    clear_cache
     flash[:success] = "Successfully disconnected from the FHIR server"
     redirect_to root_path
   end

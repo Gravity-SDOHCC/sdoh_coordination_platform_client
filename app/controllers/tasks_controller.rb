@@ -126,7 +126,7 @@ class TasksController < ApplicationController
     cp_task.requester = ehr_task.owner
     cp_task.owner = {
       "reference": "Organization/#{params[:cbo_organization_id]}",
-      "display": Rails.cache.read("cbo")&.find { |o| o.id == params[:cbo_organization_id] }&.name,
+      "display": Rails.cache.read(organizations_key)&.find { |o| o.id == params[:cbo_organization_id] }&.name,
     }
     cp_task.focus = { reference: "ServiceRequest/#{result_cp_request.id}" }
     cp_task.id = nil

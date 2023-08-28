@@ -16,6 +16,13 @@ module SessionsHelper
     !!Rails.cache.read(client_key)
   end
 
+  def clear_cache
+    Rails.cache.delete(client_key)
+    Rails.cache.delete(organizations_key)
+    Rails.cache.delete(cp_tasks_key)
+    Rails.cache.delete(ehr_tasks_key)
+  end
+
   def save_cp_server_base_url(base_url)
     session[:cp_server_base_url] = base_url
   end
