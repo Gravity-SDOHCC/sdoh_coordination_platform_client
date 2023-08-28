@@ -111,6 +111,7 @@ class TasksController < ApplicationController
   private
 
   def create_cp_task_service_request(ehr_task, ehr_request)
+    cp_client = get_cp_client
     # Creating CP request
     cp_request = ehr_request
     cp_request.basedOn = [{ reference: "ServiceRequest/#{ehr_request.id}" }]

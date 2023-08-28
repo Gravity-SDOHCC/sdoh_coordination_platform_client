@@ -48,7 +48,7 @@ module SessionsHelper
   end
 
   def session_id
-    session[:id] ||= Base64.encode64(SecureRandom.random_number(2**64).to_s).chomp
+    session.id
   end
 
   def client_key
