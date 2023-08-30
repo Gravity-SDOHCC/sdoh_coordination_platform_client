@@ -9,9 +9,9 @@ class OrganizationsController < ApplicationController
       address: org_address,
       type: org_type
     )
-    org.create
+    get_cp_client.create(org)
     flash[:success] = "successfully created organization #{org.name}"
-    Rails.cache.delete("organizations")
+    Rails.cache.delete(organizations_key)
   rescue => e
     flash[:error] = "Unable to create organization"
   ensure

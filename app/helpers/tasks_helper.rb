@@ -2,11 +2,11 @@ module TasksHelper
   include SessionsHelper
 
   def save_cp_tasks(tasks)
-    Rails.cache.write("cp_tasks", tasks, expires_in: 1.day)
+    Rails.cache.write(cp_tasks_key, tasks, expires_in: 1.day)
   end
 
   def save_ehr_tasks(tasks)
-    Rails.cache.write("ehr_tasks", tasks, expires_in: 1.day)
+    Rails.cache.write(ehr_tasks_key, tasks, expires_in: 1.day)
   end
 
   def fetch_tasks
@@ -48,9 +48,9 @@ module TasksHelper
           # requester = requester_entries.find { |requester| requester.id == requester_id }
 
           if task.partOf.present?
-            cp_tasks << Task.new(task)
+            cp_tasks << Task.new(task, client)
           else
-            ehr_tasks << Task.new(task)
+            ehr_tasks << Task.new(task, client)
           end
         end
 

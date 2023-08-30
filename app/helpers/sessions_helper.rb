@@ -3,18 +3,24 @@ module SessionsHelper
   TEST_PROVIDER_ID = "SDOHCC-OrganizationCoordinationPlatformExample".freeze
 
   def save_cp_client(cp_client)
-    @fhir_cp_client = Rails.cache.fetch("cp_client", expires_in: 1.day) do
+    @fhir_cp_client = Rails.cache.fetch(client_key, expires_in: 1.day) do
       cp_client
     end
   end
 
   def get_cp_client
-    @fhir_cp_client = Rails.cache.read("cp_client")
-    FHIR::Model.client = @fhir_cp_client
+    @fhir_cp_client = Rails.cache.read(client_key)
   end
 
   def cp_client_connected?
-    !!Rails.cache.read("cp_client")
+    !!Rails.cache.read(client_key)
+  end
+
+  def clear_cache
+    Rails.cache.delete(client_key)
+    Rails.cache.delete(organizations_key)
+    Rails.cache.delete(cp_tasks_key)
+    Rails.cache.delete(ehr_tasks_key)
   end
 
   def save_cp_server_base_url(base_url)
@@ -39,5 +45,25 @@ module SessionsHelper
 
   def active_tab
     session[:active_tab] || "service-requests"
+  end
+
+  def session_id
+    session.id
+  end
+
+  def client_key
+    "#{session_id}_client"
+  end
+
+  def organizations_key
+    "#{session_id}_organizations"
+  end
+
+  def cp_tasks_key
+    "#{session_id}_cp_tasks"
+  end
+
+  def ehr_tasks_key
+    "#{session_id}_ehr_tasks"
   end
 end

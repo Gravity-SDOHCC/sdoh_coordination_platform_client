@@ -1,10 +1,10 @@
 class Task
   attr_reader :id, :status, :focus, :owner_reference, :owner_name, :requester_name,
               :requester_resource, :patient_name, :patient_resource, :outcome, :consent,
-              :outcome_type, :authored_on, :status_reason, :fhir_resource
+              :outcome_type, :authored_on, :status_reason, :fhir_resource, :cp_client
 
-  def initialize(fhir_task)
-    # byebug
+  def initialize(fhir_task, cp_client)
+    @cp_client = cp_client
     @id = fhir_task.id
     @fhir_resource = fhir_task
     @status = fhir_task.status
@@ -26,13 +26,13 @@ class Task
 
   def get_outcome(outcome)
     return if outcome.nil?
+
     @outcome_type = outcome.type&.coding&.first&.code&.titleize
     fhir_outcome = get_fhir_resource(FHIR::Procedure, outcome.valueReference)
     Procedure.new(fhir_outcome) if fhir_outcome
   end
 
   def get_consent(focus)
-    # byebug
     consent_ref = focus&.supportingInfo&.first
     fhir_consent = get_fhir_resource(FHIR::Consent, consent_ref)
     Consent.new(fhir_consent) if fhir_consent
@@ -40,9 +40,11 @@ class Task
 
   def get_fhir_resource(fhir_class, ref)
     resource_id = get_id_from_reference(ref)
-    fhir_resource = fhir_class.read(resource_id) if resource_id
+    return if resource_id.blank?
+
+    fhir_resource = cp_client.read(fhir_class, resource_id).resource
     # sometimes for some reason read returns FHIR::Bundle
-    fhir_resource = fhir_resource&.resource&.entry&.first&.resource if fhir_resource.is_a?(FHIR::Bundle)
+    fhir_resource = fhir_resource&.entry&.first&.resource if fhir_resource.is_a?(FHIR::Bundle)
     fhir_resource
   end
 
