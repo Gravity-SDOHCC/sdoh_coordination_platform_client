@@ -13,6 +13,8 @@ class OrganizationsController < ApplicationController
     flash[:success] = "successfully created organization #{org.name}"
     Rails.cache.delete(organizations_key)
   rescue => e
+    Rails.logger.error(e.full_message)
+
     flash[:error] = "Unable to create organization"
   ensure
     redirect_to dashboard_path
