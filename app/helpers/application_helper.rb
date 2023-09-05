@@ -7,8 +7,8 @@ module ApplicationHelper
       response = get_cp_client.search(FHIR::Organization, search: {  parameters: { type: 'cbo', _sort: "-_lastUpdated" }}).resource
 
       if response.is_a?(FHIR::Bundle)
-        entries = response.entry.map(&:resource)
-        entries.map { |entry| Organization.new(entry) }
+        entries = response.entry&.map(&:resource)
+        entries&.map { |entry| Organization.new(entry) }
       end
     end
   end
