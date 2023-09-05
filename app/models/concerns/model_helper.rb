@@ -1,36 +1,36 @@
 module ModelHelper extend ActiveSupport::Concern
 
   def format_phone(fhir_telecom_arr)
-    phone_numbers = fhir_telecom_arr.select do |telecom|
-      telecom.system == "phone"
-    end.map { |phone| phone.value }
+    phone_numbers = fhir_telecom_arr&.select do |telecom|
+      telecom&.system == "phone"
+    end&.map { |phone| phone.value }
 
-    phone_numbers.join(", ")
+    phone_numbers&.join(", ")
   end
 
   def format_email(fhir_telecom_arr)
-    email_addresses = fhir_telecom_arr.select do |telecom|
-      telecom.system == "email"
-    end.map { |email| email.value }
+    email_addresses = fhir_telecom_arr&.select do |telecom|
+      telecom&.system == "email"
+    end&.map { |email| email.value }
 
-    email_addresses.join(", ")
+    email_addresses&.join(", ")
   end
 
   def format_url(fhir_telecom_arr)
-    urls = fhir_telecom_arr.select do |telecom|
-      telecom.system == "url"
-    end.map { |url| url.value }
+    urls = fhir_telecom_arr&.select do |telecom|
+      telecom&.system == "url"
+    end&.map { |url| url&.value }
 
-    urls.join(", ")
+    urls&.join(", ")
   end
 
   def format_name(fhir_name_array)
     latest_name = latest_start_date_object(fhir_name_array)
     return "No name provided" if latest_name.nil?
 
-    given_names = latest_name.given.join(" ") if latest_name.given
+    given_names = latest_name.given&.join(" ") if latest_name.given
     family_name = latest_name.family
-    suffix = latest_name.suffix.join(" ") if latest_name.suffix
+    suffix = latest_name.suffix&.join(" ") if latest_name.suffix
 
     [family_name, given_names, suffix].compact.join(" ")
   end
@@ -54,7 +54,7 @@ module ModelHelper extend ActiveSupport::Concern
     latest_start_date = nil
 
     array.each do |item|
-      if item.period && item.period.start
+      if item&.period&.start
         start_date = Date.parse(item.period.start)
 
         if latest_start_date.nil? || start_date > latest_start_date
