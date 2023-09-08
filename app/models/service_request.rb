@@ -1,9 +1,12 @@
 class ServiceRequest
+  include ModelHelper
+
   attr_reader :id, :status, :category, :description, :performer_name, :performer_reference, :priority, :fhir_resource
 
   def initialize(fhir_service_request)
     @id = fhir_service_request.id
     @fhir_resource = fhir_service_request
+    remove_client_instances(@fhir_resource)
     @status = fhir_service_request.status
     @category = read_category(fhir_service_request.category)
     @description = read_codeable_concept(fhir_service_request.code)
