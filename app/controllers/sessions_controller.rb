@@ -1,4 +1,6 @@
 class SessionsController < ApplicationController
+  protect_from_forgery with: :null_session
+
   # Get /home
   def index
     if cp_client_connected?

@@ -99,8 +99,7 @@ class TasksController < ApplicationController
         [msg, t.id]
       end
     else
-      Rails.logger.error("Unable to fetch tasks: #{result}")
-
+      [false, "Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}"]
       Rails.logger.error("Unable to fetch tasks: #{result}")
     end
     ActionCable.server.broadcast "notifications", { cp_task_notifications: @cp_task_notifications.to_json, ehr_task_notifications: @ehr_task_notifications.to_json }

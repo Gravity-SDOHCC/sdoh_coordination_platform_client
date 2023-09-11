@@ -60,11 +60,17 @@ module TasksHelper
         save_ehr_tasks(ehr_tasks)
         [true, grp]
       else
+        Rails.logger.error("Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}")
+
         [false, "Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}"]
       end
     rescue Errno::ECONNREFUSED => e
+      Rails.logger.error(e.full_message)
+
       [false, "Connection refused. Please check FHIR server's URL #{get_ehr_base_url} is up and try again. #{e.message}"]
     rescue StandardError => e
+      Rails.logger.error(e.full_message)
+
       [false, "Something went wrong. #{e.message}"]
     end
   end

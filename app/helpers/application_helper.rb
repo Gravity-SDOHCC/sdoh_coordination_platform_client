@@ -9,6 +9,8 @@ module ApplicationHelper
       if response.is_a?(FHIR::Bundle)
         entries = response.entry&.map(&:resource)
         entries&.map { |entry| Organization.new(entry) }
+      else
+        Rails.logger.error("Unable to fetch Organizations: #{response.response[:code]} - #{response.response[:body]}")
       end
     end
   end

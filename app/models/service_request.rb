@@ -10,8 +10,8 @@ class ServiceRequest
     @status = fhir_service_request.status
     @category = read_category(fhir_service_request.category)
     @description = read_codeable_concept(fhir_service_request.code)
-    @performer_name = fhir_service_request.performer.&first&.display
-    @performer_reference = fhir_service_request.performer.&first&.reference
+    @performer_name = fhir_service_request.performer&.first&.display
+    @performer_reference = fhir_service_request.performer&.first&.reference
     @priority = fhir_service_request.priority
   end
 
