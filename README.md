@@ -28,6 +28,11 @@ rails](https://guides.rubyonrails.org/getting_started.html#creating-a-new-rails-
     environment variable: `PORT=3333 bundle exec rails s`
 * Navigate to `http://localhost:3000` in your browser
 
+## Usage
+See [the usage
+documentation](https://github.com/Gravity-SDOHCC/sdoh_referral_source_client/blob/master/docs/usage.md)
+for instructions on using the reference implementations.
+
 ## Known Issues
 * Organizations do not show up immediately once they have been added.
 
