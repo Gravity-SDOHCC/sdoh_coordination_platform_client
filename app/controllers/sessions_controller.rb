@@ -1,4 +1,6 @@
 class SessionsController < ApplicationController
+  protect_from_forgery with: :null_session
+
   # Get /home
   def index
     if cp_client_connected?
@@ -27,11 +29,14 @@ class SessionsController < ApplicationController
         flash[:success] = "Successfully connected to #{fhir_server.name}"
         redirect_to dashboard_path
       else
+        Rails.logger.error("Failed to connect to the provided CP server.")
+
         flash[:error] = "Failed to connect to the provided CP server, verify the URL provided is correct."
         redirect_to home_path
       end
     rescue StandardError => e
-      puts "Error happened:#{e.class} => #{e.message}"
+      Rails.logger.error(e.full_message)
+
       flash[:error] = "Failed to connect to the provided server, verify the URL provided is correct. Error: #{e.message}"
       redirect_to home_path
     end

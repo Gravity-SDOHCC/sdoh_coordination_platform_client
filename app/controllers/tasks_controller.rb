@@ -40,9 +40,13 @@ class TasksController < ApplicationController
 
         flash[:success] = "Task has been marked as #{status}."
       else
+        Rails.logger.error("Unable to update task: task not found")
+
         flash[:error] = "Unable to update task: task not found"
       end
     rescue => e
+      Rails.logger.error(e.full_message)
+
       flash[:error] = "Unable to update task: #{e.message}"
     end
     Rails.cache.delete(cp_tasks_key)
@@ -95,6 +99,7 @@ class TasksController < ApplicationController
         [msg, t.id]
       end
     else
+      [false, "Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}"]
       Rails.logger.error("Unable to fetch tasks: #{result}")
     end
     ActionCable.server.broadcast "notifications", { cp_task_notifications: @cp_task_notifications.to_json, ehr_task_notifications: @ehr_task_notifications.to_json }

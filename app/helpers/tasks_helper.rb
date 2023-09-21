@@ -25,8 +25,8 @@ module TasksHelper
     begin
       response = client.search(FHIR::Task, search: search_params)
       if response.response[:code] == 200
-        entries = response.resource.entry.map(&:resource)
-        task_entries = entries.select { |entry| entry.resourceType == "Task" }
+        entries = response.resource.entry&.map(&:resource)
+        task_entries = entries&.select { |entry| entry&.resourceType == "Task" }
         # sr_entries = entries.select { |entry| entry.resourceType == "ServiceRequest" }
         # consent_entries = entries.select { |entry| entry.resourceType == "Consent" }
         # requester_entries = entries.select { |entry| entry.resourceType == "Organization" || entry.resourceType == "PractitionerRole" }
@@ -36,15 +36,15 @@ module TasksHelper
         # end
         cp_tasks = []
         ehr_tasks = []
-        task_entries.each do |task|
-          # focus_id = get_id_from_reference(task.focus)
+        task_entries&.each do |task|
+          # focus_id = task&.focus&.reference_id
           # focus = sr_entries.find { |sr| sr.id == focus_id }
           # # byebug
-          # consent_id = get_id_from_reference(focus&.supportingInfo)
+          # consent_id = focus&.supportingInfo&.reference_id
           # consent = consent_entries.find { |consent| consent.id == consent_id }
-          # patient_id = get_id_from_reference(task.for)
+          # patient_id = task&.for&.reference_id
           # patient = patient_entries.find { |patient| patient.id == patient_id }
-          # requester_id = get_id_from_reference(task.requester)
+          # requester_id = task&.requester&.reference_id
           # requester = requester_entries.find { |requester| requester.id == requester_id }
 
           if task.partOf.present?
@@ -60,11 +60,17 @@ module TasksHelper
         save_ehr_tasks(ehr_tasks)
         [true, grp]
       else
+        Rails.logger.error("Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}")
+
         [false, "Failed to fetch referral tasks. Status: #{response.response[:code]} - #{response.response[:body]}"]
       end
     rescue Errno::ECONNREFUSED => e
+      Rails.logger.error(e.full_message)
+
       [false, "Connection refused. Please check FHIR server's URL #{get_ehr_base_url} is up and try again. #{e.message}"]
     rescue StandardError => e
+      Rails.logger.error(e.full_message)
+
       [false, "Something went wrong. #{e.message}"]
     end
   end
@@ -79,9 +85,5 @@ module TasksHelper
       grp["cancelled"] << task if task.status == "cancelled" || task.status == "rejected"
     end
     grp
-  end
-
-  def get_id_from_reference(ref_obj)
-    ref_obj&.reference&.split("/")&.last
   end
 end
