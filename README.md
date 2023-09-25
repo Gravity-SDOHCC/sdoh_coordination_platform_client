@@ -19,8 +19,8 @@ This application is built with Ruby on Rails. To run it locally, first [install
 rails](https://guides.rubyonrails.org/getting_started.html#creating-a-new-rails-project-installing-rails).
 
 * Clone this repository: `git clone
-  https://github.com/Gravity-SDOHCC/sdoh_referral_source_client.git`
-* Navigate to the root of this repository: `cd sdoh_referral_source_client`
+  https://github.com/Gravity-SDOHCC/sdoh_coordination_platform_client.git`
+* Navigate to the root of this repository: `cd sdoh_coordination_platform_client`
 * Install dependencios: `bundle install`
 * Set up the database: `bundle exec rake db:setup`
 * Run the application: `bundle exec rails s`
@@ -35,6 +35,8 @@ for instructions on using the reference implementations.
 
 ## Known Issues
 * Organizations do not show up immediately once they have been added.
+* Sometimes when new links are added to the page (such as when a new referral is
+  received), clicking o the link will have no effect until the page is reloaded
 
 ## License
 Copyright 2023 The MITRE Corporation
