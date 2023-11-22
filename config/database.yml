@@ -78,11 +78,13 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  adapter: postgresql
-  encoding: unicode
+  <<: *default
+  database: db/production.sqlite3
+  # adapter: postgresql
+  # encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  database: sdoh_coordination_platform_client_production
-  username: sdoh_coordination_platform_client
-  password: <%= ENV["SDOH_COORDINATION_PLATFORM_CLIENT_DATABASE_PASSWORD"] %>
+  # pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # database: sdoh_coordination_platform_client_production
+  # username: sdoh_coordination_platform_client
+  # password: <%= ENV["SDOH_COORDINATION_PLATFORM_CLIENT_DATABASE_PASSWORD"] %>
