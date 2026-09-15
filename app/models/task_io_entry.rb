@@ -96,7 +96,15 @@ class TaskIoEntry
       when FHIR::Goal then codeable_display(fhir_resource.description)
       when FHIR::CarePlan then fhir_resource.title.presence || codeable_display(fhir_resource.category&.first)
       when FHIR::QuestionnaireResponse then questionnaire_display(fhir_resource)
-      else codeable_display(fhir_resource.code)
+      when FHIR::Consent then codeable_display(Array(fhir_resource.category).first)
+      when FHIR::DocumentReference then fhir_resource.description.presence || codeable_display(fhir_resource.type)
+      else
+        # Task.input:AdditionalContent.value[x] is Reference(Resource) with no
+        # targetProfile, so anything can arrive here and not every resource type
+        # has a code element - FHIR::Consent has category, scope and provision
+        # and no code at all. Label what can be labelled; the rest falls back to
+        # the resource type in the caller.
+        codeable_display(fhir_resource.code) if fhir_resource.respond_to?(:code)
       end
 
     text.presence
@@ -195,9 +203,7 @@ class TaskIoEntry
     end
 
     Rails.logger.info("Task #{type_code} entry: reading #{resource_type}/#{resource_id}")
-    fhir_resource = fhir_client.read(fhir_class, resource_id).resource
-    # sometimes for some reason read returns FHIR::Bundle
-    fhir_resource = fhir_resource&.entry&.first&.resource if fhir_resource.is_a?(FHIR::Bundle)
+    fhir_resource = ResourceReader.read(fhir_client, fhir_class, resource_id)
     fhir_resource if fhir_resource.is_a?(fhir_class)
   end
 
@@ -208,13 +214,15 @@ class TaskIoEntry
     fhir_class if fhir_class.is_a?(Class) && fhir_class <= FHIR::Model
   end
 
-  # This client models Procedure and Observation, the two resources its tables
-  # render. Goal, Condition, QuestionnaireResponse and CarePlan additional
-  # content still resolve, as raw FHIR, rather than being dropped.
+  # This client models Procedure, Observation and QuestionnaireResponse, the
+  # three resources its tables and the referral drawer render. Goal, Condition
+  # and CarePlan additional content still resolve, as raw FHIR, rather than
+  # being dropped.
   def wrap(fhir_resource)
     case resource_type
     when "Procedure" then Procedure.new(fhir_resource)
     when "Observation" then Observation.new(fhir_resource)
+    when "QuestionnaireResponse" then QuestionnaireResponse.new(fhir_resource)
     else GenericResource.new(fhir_resource)
     end
   end
